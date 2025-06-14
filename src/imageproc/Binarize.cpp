@@ -22,7 +22,15 @@ BinaryImage binarizeMokji(const QImage& src, const unsigned maxEdgeWidth, const 
   return BinaryImage(src, threshold);
 }
 
-BinaryImage binarizeSauvola(const QImage& src, const QSize windowSize, const double k, const double delta) {
+/*
+ * sauvola = mean * (1.0 + k * (stderr / 128.0 - 1.0)), k = 0.34
+ * modification by zvezdochiot:
+ * sauvola = mean * (1.0 + k * ((stderr + delta) / 128.0 - 1.0)), k = 0.34, delta = 0
+ */
+BinaryImage binarizeSauvola(const QImage& src,
+                            const QSize windowSize,
+                            const double k,
+                            const double delta) {
   if (windowSize.isEmpty()) {
     throw std::invalid_argument("binarizeSauvola: invalid windowSize");
   }
@@ -84,11 +92,11 @@ BinaryImage binarizeSauvola(const QImage& src, const QSize windowSize, const dou
       const double variance = sqmean - mean * mean;
       const double deviation = std::sqrt(std::fabs(variance));
 
-      const double threshold = mean * (1.0 + k * (deviation / 128.0 - 1.0));
+      const double threshold = mean * (1.0 + k * ((deviation + delta) / 128.0 - 1.0));
 
       const uint32_t msb = uint32_t(1) << 31;
       const uint32_t mask = msb >> (x & 31);
-      if (int(grayLine[x]) < (threshold + delta)) {
+      if (int(grayLine[x]) < threshold) {
         // black
         bwLine[x >> 5] |= mask;
       } else {
@@ -102,6 +110,11 @@ BinaryImage binarizeSauvola(const QImage& src, const QSize windowSize, const dou
   return bwImg;
 }  // binarizeSauvola
 
+/*
+ * wolf = mean - k * (mean - min_v) * (1.0 - stderr / stdmax), k = 0.3
+ * modification by zvezdochiot:
+ * wolf = mean - k * (mean - min_v) * (1.0 - (stderr / stdmax + delta / 128.0), k = 0.3, delta = 0
+ */
 BinaryImage binarizeWolf(const QImage& src,
                          const QSize windowSize,
                          const unsigned char lowerBound,
@@ -188,12 +201,12 @@ BinaryImage binarizeWolf(const QImage& src,
     for (int x = 0; x < w; ++x) {
       const float mean = means[y * w + x];
       const float deviation = deviations[y * w + x];
-      const double a = 1.0 - deviation / maxDeviation;
+      const double a = 1.0 - (deviation / maxDeviation + (double) delta / 128.0);
       const double threshold = mean - k * a * (mean - minGrayLevel);
 
       const uint32_t msb = uint32_t(1) << 31;
       const uint32_t mask = msb >> (x & 31);
-      if ((grayLine[x] < lowerBound) || ((grayLine[x] <= upperBound) && (int(grayLine[x]) < (threshold + delta)))) {
+      if ((grayLine[x] < lowerBound) || ((grayLine[x] <= upperBound) && (int(grayLine[x]) < threshold))) {
         // black
         bwLine[x >> 5] |= mask;
       } else {
@@ -277,6 +290,11 @@ BinaryImage binarizeBradley(const QImage& src, const QSize windowSize, const dou
   return bwImg;
 }  // binarizeBradley
 
+/*
+ * grad = mean * k + meanG * (1.0 - k), meanG = mean(I * G) / mean(G), G = |I - mean|, k = 0.75
+ * modification by zvezdochiot:
+ * mean = mean + delta, delta = 0
+ */
 BinaryImage binarizeGrad(const QImage& src,
                          const QSize windowSize,
                          const unsigned char lowerBound,
@@ -336,7 +354,7 @@ BinaryImage binarizeGrad(const QImage& src,
       const double windowSum = integralImage.sum(rect);
 
       const double rArea = 1.0 / area;
-      const double mean = windowSum * rArea + 0.5;
+      const double mean = windowSum * rArea + 0.5 + delta;
       const int imean = (int) ((mean < 0.0) ? 0.0 : (mean < 255.0) ? mean : 255.0);
       gmeanLine[x] = imean;
     }
@@ -381,7 +399,7 @@ BinaryImage binarizeGrad(const QImage& src,
       const double threshold = meanGrad + mean * k;
       const uint32_t msb = uint32_t(1) << 31;
       const uint32_t mask = msb >> (x & 31);
-      if ((grayLine[x] < lowerBound) || ((grayLine[x] <= upperBound) && (origin < (threshold + delta)))) {
+      if ((grayLine[x] < lowerBound) || ((grayLine[x] <= upperBound) && (origin < threshold))) {
         // black
         bwLine[x >> 5] |= mask;
       } else {
@@ -396,6 +414,9 @@ BinaryImage binarizeGrad(const QImage& src,
   return bwImg;
 }  // binarizeGrad
 
+/*
+ * edgediv == EdgeDiv image prefilter before the Otsu threshold
+ */
 BinaryImage binarizeEdgeDiv(const QImage& src,
                             const QSize windowSize,
                             const double kep,
