@@ -3,6 +3,9 @@
 The ScanTailor version that merges the features of the `ScanTailor Featured` and `ScanTailor Enhanced` versions,
 brings new ones and fixes.  
 
+### Video demonstration of an older version
+[![image](https://github.com/ScanTailor-Advanced/scantailor-advanced/assets/6695517/d0e1dbbe-0e97-4d72-a011-28b171cad939)](https://vimeo.com/12524529) 
+If the video doesn't play, you may to have to login into your vimeo account.
 
 ## Contents:
 * [Description](#description)
