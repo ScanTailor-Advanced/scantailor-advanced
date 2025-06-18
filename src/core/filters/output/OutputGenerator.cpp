@@ -2294,14 +2294,14 @@ BinaryImage OutputGenerator::Processor::binarize(const QImage& image) const {
 
   BinaryImage binarized;
   switch (binarizationMethod) {
-    case OTSU: {
+    case T_OTSU: {
       GrayscaleHistogram hist(image);
       const BinaryThreshold bwThresh(BinaryThreshold::otsuThreshold(hist));
 
       binarized = BinaryImage(image, adjustThreshold(bwThresh));
       break;
     }
-    case SAUVOLA: {
+    case T_SAUVOLA: {
       const double thresholdDelta = blackWhiteOptions.thresholdAdjustment();
       const QSize windowsSize = QSize(blackWhiteOptions.getWindowSize(), blackWhiteOptions.getWindowSize());
       const double thresholdCoef = blackWhiteOptions.getSauvolaCoef();
@@ -2309,7 +2309,7 @@ BinaryImage OutputGenerator::Processor::binarize(const QImage& image) const {
       binarized = binarizeSauvola(image, windowsSize, thresholdCoef, thresholdDelta);
       break;
     }
-    case WOLF: {
+    case T_WOLF: {
       const double thresholdDelta = blackWhiteOptions.thresholdAdjustment();
       const QSize windowsSize = QSize(blackWhiteOptions.getWindowSize(), blackWhiteOptions.getWindowSize());
       const auto lowerBound = (unsigned char) blackWhiteOptions.getWolfLowerBound();
@@ -2319,7 +2319,7 @@ BinaryImage OutputGenerator::Processor::binarize(const QImage& image) const {
       binarized = binarizeWolf(image, windowsSize, lowerBound, upperBound, thresholdCoef, thresholdDelta);
       break;
     }
-    case BRADLEY: {
+    case T_BRADLEY: {
       const double thresholdDelta = blackWhiteOptions.thresholdAdjustment();
       const QSize windowsSize = QSize(blackWhiteOptions.getWindowSize(), blackWhiteOptions.getWindowSize());
       const double thresholdCoef = blackWhiteOptions.getSauvolaCoef();
@@ -2327,7 +2327,17 @@ BinaryImage OutputGenerator::Processor::binarize(const QImage& image) const {
       binarized = binarizeBradley(image, windowsSize, thresholdCoef, thresholdDelta);
       break;
     }
-    case EDGEPLUS: {
+    case T_GRAD: {
+      const double thresholdDelta = blackWhiteOptions.thresholdAdjustment();
+      const QSize windowsSize = QSize(blackWhiteOptions.getWindowSize(), blackWhiteOptions.getWindowSize());
+      const auto lowerBound = (unsigned char) blackWhiteOptions.getWolfLowerBound();
+      const auto upperBound = (unsigned char) blackWhiteOptions.getWolfUpperBound();
+      const double thresholdCoef = blackWhiteOptions.getWolfCoef();
+
+      binarized = binarizeGrad(image, windowsSize, lowerBound, upperBound, thresholdCoef, thresholdDelta);
+      break;
+    }
+    case T_EDGEPLUS: {
       const double thresholdDelta = blackWhiteOptions.thresholdAdjustment();
       const QSize windowsSize = QSize(blackWhiteOptions.getWindowSize(), blackWhiteOptions.getWindowSize());
       const double thresholdCoef = blackWhiteOptions.getSauvolaCoef();
@@ -2335,7 +2345,7 @@ BinaryImage OutputGenerator::Processor::binarize(const QImage& image) const {
       binarized = binarizeEdgeDiv(image, windowsSize, thresholdCoef, 0.0, thresholdDelta);
       break;
     }
-    case BLURDIV: {
+    case T_BLURDIV: {
       const double thresholdDelta = blackWhiteOptions.thresholdAdjustment();
       const QSize windowsSize = QSize(blackWhiteOptions.getWindowSize(), blackWhiteOptions.getWindowSize());
       const double thresholdCoef = blackWhiteOptions.getSauvolaCoef();
@@ -2343,7 +2353,7 @@ BinaryImage OutputGenerator::Processor::binarize(const QImage& image) const {
       binarized = binarizeEdgeDiv(image, windowsSize, 0.0, thresholdCoef, thresholdDelta);
       break;
     }
-    case EDGEDIV: {
+    case T_EDGEDIV: {
       const double thresholdDelta = blackWhiteOptions.thresholdAdjustment();
       const QSize windowsSize = QSize(blackWhiteOptions.getWindowSize(), blackWhiteOptions.getWindowSize());
       const double thresholdCoef = blackWhiteOptions.getSauvolaCoef();

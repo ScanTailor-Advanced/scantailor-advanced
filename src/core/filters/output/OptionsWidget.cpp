@@ -39,13 +39,14 @@ OptionsWidget::OptionsWidget(std::shared_ptr<Settings> settings, const PageSelec
   colorModeSelector->addItem(tr("Color / Grayscale"), COLOR_GRAYSCALE);
   colorModeSelector->addItem(tr("Mixed"), MIXED);
 
-  thresholdMethodBox->addItem(tr("Otsu"), OTSU);
-  thresholdMethodBox->addItem(tr("Sauvola"), SAUVOLA);
-  thresholdMethodBox->addItem(tr("Wolf"), WOLF);
-  thresholdMethodBox->addItem(tr("Bradley"), BRADLEY);
-  thresholdMethodBox->addItem(tr("EdgePlus"), EDGEPLUS);
-  thresholdMethodBox->addItem(tr("BlurDiv"), BLURDIV);
-  thresholdMethodBox->addItem(tr("EdgeDiv"), EDGEDIV);
+  thresholdMethodBox->addItem(tr("Otsu"), T_OTSU);
+  thresholdMethodBox->addItem(tr("Sauvola"), T_SAUVOLA);
+  thresholdMethodBox->addItem(tr("Wolf"), T_WOLF);
+  thresholdMethodBox->addItem(tr("Bradley"), T_BRADLEY);
+  thresholdMethodBox->addItem(tr("Grad"), T_GRAD);
+  thresholdMethodBox->addItem(tr("EdgePlus"), T_EDGEPLUS);
+  thresholdMethodBox->addItem(tr("BlurDiv"), T_BLURDIV);
+  thresholdMethodBox->addItem(tr("EdgeDiv"), T_EDGEDIV);
 
   fillingColorBox->addItem(tr("Background"), FILL_BACKGROUND);
   fillingColorBox->addItem(tr("White"), FILL_WHITE);
@@ -57,6 +58,7 @@ OptionsWidget::OptionsWidget(std::shared_ptr<Settings> settings, const PageSelec
   QPointer<BinarizationOptionsWidget> wolfBinarizationOptionsWidget = new WolfBinarizationOptionsWidget(m_settings);
   QPointer<BinarizationOptionsWidget> bradleyBinarizationOptionsWidget
       = new SauvolaBinarizationOptionsWidget(m_settings);
+  QPointer<BinarizationOptionsWidget> gradBinarizationOptionsWidget = new WolfBinarizationOptionsWidget(m_settings);
   QPointer<BinarizationOptionsWidget> edgeplusBinarizationOptionsWidget
       = new SauvolaBinarizationOptionsWidget(m_settings);
   QPointer<BinarizationOptionsWidget> blurdivBinarizationOptionsWidget
@@ -71,6 +73,7 @@ OptionsWidget::OptionsWidget(std::shared_ptr<Settings> settings, const PageSelec
   addBinarizationOptionsWidget(sauvolaBinarizationOptionsWidget);
   addBinarizationOptionsWidget(wolfBinarizationOptionsWidget);
   addBinarizationOptionsWidget(bradleyBinarizationOptionsWidget);
+  addBinarizationOptionsWidget(gradBinarizationOptionsWidget);
   addBinarizationOptionsWidget(edgeplusBinarizationOptionsWidget);
   addBinarizationOptionsWidget(blurdivBinarizationOptionsWidget);
   addBinarizationOptionsWidget(edgedivBinarizationOptionsWidget);
