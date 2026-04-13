@@ -3,8 +3,6 @@
 
 #include "ApplyDialog.h"
 
-#include <iostream>
-
 #include "PageSelectionAccessor.h"
 
 namespace deskew {
