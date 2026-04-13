@@ -14,5 +14,6 @@ Params Utils::buildDefaultParams() {
   const DefaultParams& defaultParams = DefaultParamsProvider::getInstance().getParams();
   const DefaultParams::DeskewParams& deskewParams = defaultParams.getDeskewParams();
 
-  return Params(deskewParams.getDeskewAngleDeg(), 0.0, Dependencies(), deskewParams.getMode());
+  return Params(deskewParams.getDeskewAngleDeg(), 0.0, Dependencies(), deskewParams.getMode(),
+                deskewParams.isAutoOblique());
 }

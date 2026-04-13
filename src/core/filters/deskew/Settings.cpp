@@ -26,6 +26,7 @@ Settings::~Settings() = default;
 void Settings::clear() {
   QMutexLocker locker(&m_mutex);
   m_perPageParams.clear();
+  m_pendingAutoOblique.clear();
   m_deviationProvider.clear();
 }
 
@@ -41,6 +42,15 @@ void Settings::performRelinking(const AbstractRelinker& relinker) {
   }
 
   m_perPageParams.swap(newParams);
+
+  std::unordered_map<PageId, bool> newPending;
+  for (const auto& kv : m_pendingAutoOblique) {
+    const RelinkablePath oldPath(kv.first.imageId().filePath(), RelinkablePath::File);
+    PageId newPageId(kv.first);
+    newPageId.imageId().setFilePath(relinker.substitutionPathFor(oldPath));
+    newPending[newPageId] = kv.second;
+  }
+  m_pendingAutoOblique.swap(newPending);
 
   m_deviationProvider.clear();
   for (const PerPageParams::value_type& kv : m_perPageParams) {
@@ -96,5 +106,21 @@ void Settings::setAlgoContentBased(bool contentBased) {
 bool Settings::algoContentBased() const {
   QMutexLocker locker(&m_mutex);
   return m_algoContentBased;
+}
+
+void Settings::setPendingAutoOblique(const PageId& pageId, const bool enabled) {
+  QMutexLocker locker(&m_mutex);
+  Utils::mapSetValue(m_pendingAutoOblique, pageId, enabled);
+}
+
+std::optional<bool> Settings::takePendingAutoOblique(const PageId& pageId) {
+  QMutexLocker locker(&m_mutex);
+  const auto it = m_pendingAutoOblique.find(pageId);
+  if (it == m_pendingAutoOblique.end()) {
+    return std::nullopt;
+  }
+  const bool value = it->second;
+  m_pendingAutoOblique.erase(it);
+  return value;
 }
 }  // namespace deskew
