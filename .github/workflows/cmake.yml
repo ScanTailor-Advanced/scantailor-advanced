@@ -56,7 +56,7 @@ jobs:
       run: |
         wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
         chmod +x linuxdeploy-x86_64.AppImage
-        ./linuxdeploy-x86_64.AppImage --appdir AppDir --desktop-file ../src/resources/unix/scantailor.desktop --icon-file ../src/resources/ScanTailor.png --executable scantailor --output appimage
+        ./linuxdeploy-x86_64.AppImage --appdir AppDir --desktop-file scantailor.desktop --icon-file ../src/resources/ScanTailor.png --executable scantailor --output appimage
         mv ScanTailor*.AppImage scantailor.AppImage
       
     - name: Upload Linux bin
