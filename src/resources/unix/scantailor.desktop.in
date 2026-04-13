@@ -1,5 +1,6 @@
 [Desktop Entry]
-Version=@VERSION@
+Version=1.0
+X-ScanTailor-Advanced-Version=@VERSION@
 Name=ScanTailor Advanced
 Comment=Interactive post-processing tool for scanned pages
 Exec=scantailor %f
