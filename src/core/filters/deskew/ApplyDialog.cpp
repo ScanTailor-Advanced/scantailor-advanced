@@ -49,22 +49,10 @@ void ApplyDialog::onSubmit() {
     m_pages.selectEveryOther(m_curPage).swap(pages);
     emit appliedTo(pages);
   } else if (thisEveryOtherRB->isChecked()) {
-    std::set<PageId> tmp;
-    m_pages.selectPagePlusFollowers(m_curPage).swap(tmp);
-    auto it = tmp.begin();
-    for (int i = 0; it != tmp.end(); ++it, ++i) {
-      if (i % 2 == 0) {
-        pages.insert(*it);
-      }
-    }
+    m_pages.selectThisPageAndFollowingEveryOther(m_curPage).swap(pages);
     emit appliedTo(pages);
   } else if (everyOtherSelectedRB->isChecked()) {
-    auto it = m_selectedPages.begin();
-    for (int i = 0; it != m_selectedPages.end(); ++it, ++i) {
-      if (i % 2 == 0) {
-        pages.insert(*it);
-      }
-    }
+    m_pages.selectEveryOtherInSubsetFromPage(m_curPage, m_selectedPages).swap(pages);
     emit appliedTo(pages);
   }
   accept();
