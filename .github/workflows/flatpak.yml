@@ -1,0 +1,49 @@
+# Build the in-repo Flatpak manifest on release tags (smoke test + downloadable bundle).
+# This does not publish to Flathub; see README and https://github.com/ScanTailor-Advanced/scantailor-advanced/issues/105
+name: Flatpak
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  flatpak:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Flatpak tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder
+
+      - name: Add Flathub remote
+        run: |
+          flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+
+      - name: Cache flatpak-builder
+        uses: actions/cache@v4
+        with:
+          path: .flatpak-builder
+          key: flatpak-builder-${{ hashFiles('flatpak/org.scantailor.Advanced.json') }}-${{ runner.os }}
+
+      - name: Build Flatpak
+        run: |
+          flatpak-builder --user --repo=repo --force-clean build-dir flatpak/org.scantailor.Advanced.json --install-deps-from=flathub
+
+      - name: Create single-file bundle
+        run: |
+          flatpak build-bundle repo "ScanTailor-Advanced-${{ github.ref_name }}.flatpak" org.scantailor.Advanced
+
+      - name: Upload bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: ScanTailor-Advanced-flatpak-${{ github.ref_name }}
+          path: "*.flatpak"
+          if-no-files-found: error
