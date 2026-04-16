@@ -34,8 +34,12 @@ jobs:
             | grep -E '\.(cpp|h)$' \
             | grep -v '/translations/' \
             || true)
-          COUNT=$(echo "$SRC_FILES" | grep -c . || echo 0)
-          echo "count=$COUNT" >> $GITHUB_OUTPUT
+          if [ -z "$SRC_FILES" ]; then
+            COUNT=0
+          else
+            COUNT=$(echo "$SRC_FILES" | grep -c .)
+          fi
+          echo "count=${COUNT}" >> "$GITHUB_OUTPUT"
           if [ "$COUNT" = "0" ]; then
             echo "No changed source files to check."
             exit 0
