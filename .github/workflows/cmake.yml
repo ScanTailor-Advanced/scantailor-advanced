@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     
     - name: Install dependencies
       run: sudo apt install gcc g++ cmake libjpeg-dev libpng-dev libtiff5 libtiff5-dev libboost-test-dev qtbase5-dev libqt5svg5-dev qttools5-dev qttools5-dev-tools libqt5opengl5-dev libpthread-stubs0-dev rpm libfuse2
@@ -53,25 +53,25 @@ jobs:
         mv ScanTailor*.AppImage scantailor.AppImage
       
     - name: Upload Linux bin
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: scantailor-linux-ubuntu-latest-qt5
         path: build/scantailor
 
     - name: Upload Linux DEB
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: scantailor-linux-ubuntu-latest-qt5-deb
         path: build/scantailor.deb
 
     - name: Upload Linux RPM
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: scantailor-linux-ubuntu-latest-qt5-rpm
         path: build/scantailor.rpm
 
     - name: Upload Linux AppImage
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: scantailor-linux-appimage
         path: build/scantailor.AppImage

@@ -14,7 +14,7 @@ jobs:
     name: Build .deb
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set version from tag
         run: |
@@ -34,7 +34,7 @@ jobs:
         run: ./build-deb.sh build
 
       - name: Upload .deb artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: deb-package
           path: scantailor-advanced_*_amd64.deb
@@ -43,7 +43,7 @@ jobs:
     name: Build AppImage
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set version from tag
         run: |
