@@ -46,7 +46,9 @@ if command -v dpkg-shlibdeps >/dev/null 2>&1; then
   fi
 fi
 if [[ -z "$DEPS" ]]; then
-  DEPS="libc6, libstdc++6, libgcc-s1, libqt5core5t64 | libqt5core5a, libqt5gui5t64 | libqt5gui5, libqt5widgets5t64 | libqt5widgets5, libqt5svg5t64 | libqt5svg5, libqt5xml5t64 | libqt5xml5, libqt5network5t64 | libqt5network5, libboost-filesystem1.83.0 | libboost-filesystem1.74.0, libjpeg62-turbo | libjpeg8, libpng16-16, libtiff6, zlib1g"
+  # Fallback when dpkg-shlibdeps is unavailable (e.g. cross-build). Include common
+  # libjpeg variants across Debian/Ubuntu (see issue #64 / Ubuntu 22.04 vs bookworm).
+  DEPS="libc6, libstdc++6, libgcc-s1, libqt5core5t64 | libqt5core5a, libqt5gui5t64 | libqt5gui5, libqt5widgets5t64 | libqt5widgets5, libqt5svg5t64 | libqt5svg5, libqt5xml5t64 | libqt5xml5, libqt5network5t64 | libqt5network5, libboost-filesystem1.83.0 | libboost-filesystem1.74.0, libjpeg62-turbo | libjpeg-turbo8 | libjpeg8, libpng16-16, libtiff6, zlib1g"
 fi
 
 cat > "${DEBIAN_DIR}/control" << EOF
@@ -62,7 +64,7 @@ Description: Interactive post-processing tool for scanned pages
  with improvements for page splitting, deskewing, content selection,
  margins, dewarping and output. Supports batch processing and multiple
  output formats.
-Homepage: https://github.com/4lex4/scantailor-advanced
+Homepage: https://github.com/ScanTailor-Advanced/scantailor-advanced
 EOF
 
 # Optional: refresh icon and desktop caches after install

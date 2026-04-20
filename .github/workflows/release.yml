@@ -86,7 +86,7 @@ jobs:
           mv "$OUT" "../scantailor-advanced-${{ github.ref_name }}-x86_64.AppImage"
 
       - name: Upload AppImage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: appimage
           path: scantailor-advanced-*-x86_64.AppImage
@@ -96,10 +96,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-deb, build-appimage]
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: deb-package
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: appimage
 
