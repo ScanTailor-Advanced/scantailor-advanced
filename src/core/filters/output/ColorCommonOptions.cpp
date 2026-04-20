@@ -46,14 +46,10 @@ QDomElement ColorCommonOptions::toXml(QDomDocument& doc, const QString& name) co
 }
 
 bool ColorCommonOptions::operator==(const ColorCommonOptions& other) const {
-  return (m_normalizeIllumination == other.m_normalizeIllumination)
-         && (m_fillMargins == other.m_fillMargins)
-         && (m_fillOffcut == other.m_fillOffcut)
-         && (m_fillOutsidePageBox == other.m_fillOutsidePageBox)
-         && (m_fillingColor == other.m_fillingColor)
-         && (m_posterizationOptions == other.m_posterizationOptions)
-         && (m_wienerCoef == other.m_wienerCoef)
-         && (m_wienerWindowSize == other.m_wienerWindowSize);
+  return (m_normalizeIllumination == other.m_normalizeIllumination) && (m_fillMargins == other.m_fillMargins)
+         && (m_fillOffcut == other.m_fillOffcut) && (m_fillOutsidePageBox == other.m_fillOutsidePageBox)
+         && (m_fillingColor == other.m_fillingColor) && (m_posterizationOptions == other.m_posterizationOptions)
+         && (m_wienerCoef == other.m_wienerCoef) && (m_wienerWindowSize == other.m_wienerWindowSize);
 }
 
 bool ColorCommonOptions::operator!=(const ColorCommonOptions& other) const {
