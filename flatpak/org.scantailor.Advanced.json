@@ -1,10 +1,8 @@
 {
   "id": "org.scantailor.Advanced",
   "runtime": "org.kde.Platform",
-  "runtime-version": "5.15-22.08",
+  "runtime-version": "5.15-24.08",
   "sdk": "org.kde.Sdk",
-  "base": "org.kde.Sdk",
-  "base-version": "5.15-22.08",
   "command": "scantailor",
   "finish-args": [
     "--share=ipc",

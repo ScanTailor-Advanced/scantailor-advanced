@@ -76,7 +76,16 @@ Go to [this repository](https://github.com/ScanTailor-Advanced/scantailor-libs-b
 
 **Linux – Wayland (issue #97):** If you see rendering issues (blank or corrupted windows) when running under Wayland, try starting the application with `QT_QPA_PLATFORM=xcb` to use the X11 compatibility layer.
 
-**Linux – Flatpak / Flathub (issue #105):** End users should prefer **pre-built** binaries from [GitHub Releases](https://github.com/ScanTailor-Advanced/scantailor-advanced/releases) when available (`.deb` / AppImage on tagged releases). A Flatpak manifest for **maintainers** is in `flatpak/org.scantailor.Advanced.json` (`flatpak-builder --user --force-clean build flatpak/org.scantailor.Advanced.json`). Publishing on Flathub needs a **new** application ID (e.g. `org.scantailor.Advanced`) so it does not replace the legacy `com.github._4lex4.*` app.
+**Linux – Flatpak / Flathub ([issue #105](https://github.com/ScanTailor-Advanced/scantailor-advanced/issues/105)):**
+
+| | |
+|--|--|
+| **Day-to-day binaries** | Prefer [GitHub Releases](https://github.com/ScanTailor-Advanced/scantailor-advanced/releases) when the project publishes `.deb` / AppImage (or other) builds for a tagged version. |
+| **Install from Flathub** | There is **no** official Flathub listing yet for this fork under the new ID. Shipping there requires a maintainer to follow [Flathub submission](https://docs.flathub.org/docs/for-app-authors/submission/) (separate repo/PR to [flathub/flathub](https://github.com/flathub/flathub)), AppStream metainfo, screenshots, and reviewer feedback. The in-repo manifest is meant to make that step mostly mechanical; issue [#105](https://github.com/ScanTailor-Advanced/scantailor-advanced/issues/105) tracks coordination. |
+| **Local Flatpak (maintainers / QA)** | Manifest: [`flatpak/org.scantailor.Advanced.json`](flatpak/org.scantailor.Advanced.json). Example: `flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo` then `flatpak-builder --user --install-deps-from=flathub --force-clean build-dir flatpak/org.scantailor.Advanced.json` (installs the KDE runtime/SDK from Flathub on first run). |
+| **CI smoke build** | On each **`v*` tag** push (and via **workflow dispatch**), [`.github/workflows/flatpak.yml`](.github/workflows/flatpak.yml) runs `flatpak-builder` and uploads a **`.flatpak` bundle** as a workflow artifact for smoke testing. This is **not** the Flathub build pipeline. |
+
+**Application ID:** the manifest uses `org.scantailor.Advanced` so it does **not** replace the legacy `com.github._4lex4.*` Flatpak. Author docs: [for app authors](https://docs.flathub.org/docs/for-app-authors/).
 
 **Community examples / test data:** See also [scantailor-testing](https://github.com/ImageProcessing-ElectronicPublications/scantailor-testing) (community repository; issue [#43](https://github.com/ScanTailor-Advanced/scantailor-advanced/issues/43)).
 

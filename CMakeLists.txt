@@ -70,6 +70,9 @@ endif()
 
 st_set_default_build_type(Release)
 
+# Must be set before Boost (Flatpak and other chroot builds use -DBUILD_TESTS=OFF; issue #61).
+option(BUILD_TESTS "Build unit tests (math_tests, imageproc_tests, core_tests, foundation_tests, qt_tests)" ON)
+
 if (NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 endif()
@@ -193,15 +196,21 @@ if (WIN32)
 endif()
 set(Boost_USE_MULTITHREADED ON)
 
-find_package(Boost 1.60 COMPONENTS unit_test_framework REQUIRED)
+if (BUILD_TESTS)
+  find_package(Boost 1.60 COMPONENTS unit_test_framework REQUIRED)
+else()
+  find_package(Boost 1.60 REQUIRED)
+endif()
 
 include_directories(${Boost_INCLUDE_DIRS})
 add_definitions(-DBOOST_MULTI_INDEX_DISABLE_SERIALIZATION)
-if (NOT Boost_USE_STATIC_LIBS)
-  if (WIN32)
-    add_dynamic_library_locations(Boost::unit_test_framework)
+if (BUILD_TESTS)
+  if (NOT Boost_USE_STATIC_LIBS)
+    if (WIN32)
+      add_dynamic_library_locations(Boost::unit_test_framework)
+    endif()
+    add_definitions(-DBOOST_TEST_DYN_LINK)
   endif()
-  add_definitions(-DBOOST_TEST_DYN_LINK)
 endif()
 
 #=================================== Qt ===================================#
@@ -266,8 +275,6 @@ if (WIN32 AND MSVC)
   add_definitions(-DNOMINMAX)
 endif()
 
-# Option to disable tests for offline/chroot builds where Boost or test deps may be missing (issue #61).
-option(BUILD_TESTS "Build unit tests (math_tests, imageproc_tests, core_tests, foundation_tests, qt_tests)" ON)
 if (BUILD_TESTS)
   enable_testing()
 endif()
