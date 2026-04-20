@@ -207,6 +207,26 @@ void OptionsWidget::fillMarginsToggled(const bool checked) {
 void OptionsWidget::fillOffcutToggled(const bool checked) {
   ColorCommonOptions colorCommonOptions(m_colorParams.colorCommonOptions());
   colorCommonOptions.setFillOffcut(checked);
+  if (checked) {
+    colorCommonOptions.setFillOutsidePageBox(false);
+    fillOutsidePageBoxCB->blockSignals(true);
+    fillOutsidePageBoxCB->setChecked(false);
+    fillOutsidePageBoxCB->blockSignals(false);
+  }
+  m_colorParams.setColorCommonOptions(colorCommonOptions);
+  m_settings->setColorParams(m_pageId, m_colorParams);
+  emit reloadRequested();
+}
+
+void OptionsWidget::fillOutsidePageBoxToggled(const bool checked) {
+  ColorCommonOptions colorCommonOptions(m_colorParams.colorCommonOptions());
+  colorCommonOptions.setFillOutsidePageBox(checked);
+  if (checked) {
+    colorCommonOptions.setFillOffcut(false);
+    fillOffcutCB->blockSignals(true);
+    fillOffcutCB->setChecked(false);
+    fillOffcutCB->blockSignals(false);
+  }
   m_colorParams.setColorCommonOptions(colorCommonOptions);
   m_settings->setColorParams(m_pageId, m_colorParams);
   emit reloadRequested();
@@ -595,6 +615,8 @@ void OptionsWidget::updateColorsDisplay() {
   fillMarginsCB->setVisible(true);
   fillOffcutCB->setChecked(colorCommonOptions.fillOffcut());
   fillOffcutCB->setVisible(true);
+  fillOutsidePageBoxCB->setChecked(colorCommonOptions.fillOutsidePageBox());
+  fillOutsidePageBoxCB->setVisible(true);
   equalizeIlluminationCB->setChecked(blackWhiteOptions.normalizeIllumination());
   equalizeIlluminationCB->setVisible(colorMode != COLOR_GRAYSCALE);
   equalizeIlluminationColorCB->setChecked(colorCommonOptions.normalizeIllumination());
@@ -951,6 +973,7 @@ void OptionsWidget::setupUiConnections() {
 
   CONNECT(fillMarginsCB, SIGNAL(clicked(bool)), this, SLOT(fillMarginsToggled(bool)));
   CONNECT(fillOffcutCB, SIGNAL(clicked(bool)), this, SLOT(fillOffcutToggled(bool)));
+  CONNECT(fillOutsidePageBoxCB, SIGNAL(clicked(bool)), this, SLOT(fillOutsidePageBoxToggled(bool)));
   CONNECT(equalizeIlluminationCB, SIGNAL(clicked(bool)), this, SLOT(equalizeIlluminationToggled(bool)));
   CONNECT(equalizeIlluminationColorCB, SIGNAL(clicked(bool)), this, SLOT(equalizeIlluminationColorToggled(bool)));
   CONNECT(savitzkyGolaySmoothingCB, SIGNAL(clicked(bool)), this, SLOT(savitzkyGolaySmoothingToggled(bool)));

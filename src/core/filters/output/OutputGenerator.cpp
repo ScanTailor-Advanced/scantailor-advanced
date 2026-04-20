@@ -319,7 +319,9 @@ void OutputGenerator::Processor::initParams() {
 void OutputGenerator::Processor::calcAreas() {
   m_targetSize = m_outRect.size().expandedTo(QSize(1, 1));
 
-  if (m_renderParams.fillOffcut()) {
+  if (m_renderParams.fillOutsidePageBox()) {
+    m_preCropArea = QRectF(m_outRect);
+  } else if (m_renderParams.fillOffcut()) {
     m_preCropArea = m_xform.resultingPreCropArea();
   } else {
     const QPolygonF imageRectInOutputCs = m_xform.transform().map(m_xform.origRect());

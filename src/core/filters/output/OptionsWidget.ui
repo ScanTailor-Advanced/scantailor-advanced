@@ -225,6 +225,16 @@
             </widget>
            </item>
            <item>
+            <widget class="QCheckBox" name="fillOutsidePageBoxCB">
+             <property name="toolTip">
+              <string>Fill the full output page rectangle with the background color outside the page content, instead of following offcut geometry.</string>
+             </property>
+             <property name="text">
+              <string>Fill outside page box</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QCheckBox" name="fillMarginsCB">
              <property name="text">
               <string>Fill margins</string>

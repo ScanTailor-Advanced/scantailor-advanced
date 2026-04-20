@@ -8,20 +8,22 @@
 namespace output {
 ColorCommonOptions::ColorCommonOptions()
     : m_fillOffcut(true),
+      m_fillOutsidePageBox(false),
       m_fillMargins(true),
       m_normalizeIllumination(false),
-      m_fillingColor(FILL_BACKGROUND),
       m_wienerCoef(0.0),
-      m_wienerWindowSize(5) {}
+      m_wienerWindowSize(5),
+      m_fillingColor(FILL_BACKGROUND) {}
 
 ColorCommonOptions::ColorCommonOptions(const QDomElement& el)
     : m_fillOffcut(el.attribute("fillOffcut") == "1"),
+      m_fillOutsidePageBox(el.attribute("fillOutsidePageBox") == "1"),
       m_fillMargins(el.attribute("fillMargins") == "1"),
       m_normalizeIllumination(el.attribute("normalizeIlluminationColor") == "1"),
-      m_fillingColor(parseFillingColor(el.attribute("fillingColor"))),
-      m_posterizationOptions(el.namedItem("posterization-options").toElement()),
       m_wienerCoef(el.attribute("wienerCoef").toDouble()),
-      m_wienerWindowSize(el.attribute("wienerWinSize").toInt()) {
+      m_wienerWindowSize(el.attribute("wienerWinSize").toInt()),
+      m_fillingColor(parseFillingColor(el.attribute("fillingColor"))),
+      m_posterizationOptions(el.namedItem("posterization-options").toElement()) {
   if (m_wienerCoef < 0.0 || m_wienerCoef > 1.0) {
     m_wienerCoef = 0.0;
   }
@@ -34,6 +36,7 @@ QDomElement ColorCommonOptions::toXml(QDomDocument& doc, const QString& name) co
   QDomElement el(doc.createElement(name));
   el.setAttribute("fillMargins", m_fillMargins ? "1" : "0");
   el.setAttribute("fillOffcut", m_fillOffcut ? "1" : "0");
+  el.setAttribute("fillOutsidePageBox", m_fillOutsidePageBox ? "1" : "0");
   el.setAttribute("normalizeIlluminationColor", m_normalizeIllumination ? "1" : "0");
   el.setAttribute("fillingColor", formatFillingColor(m_fillingColor));
   el.appendChild(m_posterizationOptions.toXml(doc, "posterization-options"));
@@ -44,7 +47,8 @@ QDomElement ColorCommonOptions::toXml(QDomDocument& doc, const QString& name) co
 
 bool ColorCommonOptions::operator==(const ColorCommonOptions& other) const {
   return (m_normalizeIllumination == other.m_normalizeIllumination) && (m_fillMargins == other.m_fillMargins)
-         && (m_fillOffcut == other.m_fillOffcut) && (m_fillingColor == other.m_fillingColor)
+         && (m_fillOffcut == other.m_fillOffcut) && (m_fillOutsidePageBox == other.m_fillOutsidePageBox)
+         && (m_fillingColor == other.m_fillingColor)
          && (m_posterizationOptions == other.m_posterizationOptions) && (m_wienerCoef == other.m_wienerCoef)
          && (m_wienerWindowSize == other.m_wienerWindowSize);
 }

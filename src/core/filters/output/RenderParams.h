@@ -17,6 +17,8 @@ class RenderParams {
 
   bool fillOffcut() const;
 
+  bool fillOutsidePageBox() const;
+
   bool fillMargins() const;
 
   bool normalizeIllumination() const;
@@ -54,7 +56,8 @@ class RenderParams {
     ORIGINAL_BACKGROUND = 1 << 8,
     COLOR_SEGMENTATION = 1 << 9,
     POSTERIZE = 1 << 10,
-    FILL_OFFCUT = 1 << 11
+    FILL_OFFCUT = 1 << 11,
+    FILL_OUTSIDE_PAGE_BOX = 1 << 12
   };
 
   int m_mask;
@@ -111,6 +114,10 @@ inline bool RenderParams::posterize() const {
 
 inline bool RenderParams::fillOffcut() const {
   return (m_mask & FILL_OFFCUT) != 0;
+}
+
+inline bool RenderParams::fillOutsidePageBox() const {
+  return (m_mask & FILL_OUTSIDE_PAGE_BOX) != 0;
 }
 }  // namespace output
 #endif  // ifndef SCANTAILOR_OUTPUT_RENDERPARAMS_H_
