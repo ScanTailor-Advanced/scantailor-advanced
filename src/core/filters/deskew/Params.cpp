@@ -24,8 +24,7 @@ Params::Params(const double deskewAngleDeg,
 Params::Params(const QDomElement& deskewEl)
     : m_rotation{deskewEl.attribute("angle").toDouble(),
                  deskewEl.attribute("mode") == "manual" ? MODE_MANUAL : MODE_AUTO},
-      m_oblique{deskewEl.attribute("oblique").toDouble(),
-                deskewEl.attribute("autoOblique", "1") != "0"},
+      m_oblique{deskewEl.attribute("oblique").toDouble(), deskewEl.attribute("autoOblique", "1") != "0"},
       m_deps(deskewEl.namedItem("dependencies").toElement()) {}
 
 Params::~Params() = default;

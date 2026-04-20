@@ -61,7 +61,9 @@ QDomElement DefaultParams::FixOrientationParams::toXml(QDomDocument& doc, const 
   return el;
 }
 
-DefaultParams::DeskewParams::DeskewParams(const double deskewAngleDeg, const AutoManualMode mode, const bool autoOblique)
+DefaultParams::DeskewParams::DeskewParams(const double deskewAngleDeg,
+                                          const AutoManualMode mode,
+                                          const bool autoOblique)
     : m_deskewAngleDeg(deskewAngleDeg), m_mode(mode), m_autoOblique(autoOblique) {}
 
 DefaultParams::DeskewParams::DeskewParams() : m_deskewAngleDeg(0.0), m_mode(MODE_AUTO), m_autoOblique(false) {}
