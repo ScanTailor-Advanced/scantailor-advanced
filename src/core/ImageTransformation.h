@@ -204,6 +204,12 @@ class ImageTransformation {
    */
   const QRectF& resultingRect() const { return m_resultingRect; }
 
+  /**
+   * \brief Map a rectangle from original image coordinates to the coordinate
+   *        system used by setPreCropArea() (after pre-scale and pre-rotate).
+   */
+  QPolygonF origRectToPreCropSpace(const QRectF& rect) const;
+
  private:
   QTransform calcCropXform(const QPolygonF& cropArea);
 

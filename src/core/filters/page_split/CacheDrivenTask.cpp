@@ -3,6 +3,8 @@
 
 #include "CacheDrivenTask.h"
 
+#include <QPainterPath>
+
 #include <utility>
 
 #include "IncompleteThumbnail.h"
@@ -16,6 +18,23 @@
 #include "filters/deskew/CacheDrivenTask.h"
 
 namespace page_split {
+
+static QPolygonF intersectPreCropWithPageOutline(const QPolygonF& pageOutlinePoly, const QPolygonF& incomingPreCrop) {
+  QPainterPath pathPage;
+  pathPage.addPolygon(pageOutlinePoly);
+  QPainterPath pathIncoming;
+  pathIncoming.addPolygon(incomingPreCrop);
+  const QPainterPath intersection = pathPage.intersected(pathIncoming);
+  if (intersection.isEmpty()) {
+    return pageOutlinePoly;
+  }
+  const QPolygonF clipped = intersection.toFillPolygon();
+  if (clipped.isEmpty()) {
+    return pageOutlinePoly;
+  }
+  return clipped;
+}
+
 CacheDrivenTask::CacheDrivenTask(std::shared_ptr<Settings> settings,
                                  std::shared_ptr<ProjectPages> projectPages,
                                  std::shared_ptr<deskew::CacheDrivenTask> nextTask)
@@ -64,7 +83,9 @@ void CacheDrivenTask::process(const PageInfo& pageInfo,
 
   if (m_nextTask) {
     ImageTransformation newXform(xform);
-    newXform.setPreCropArea(layout.pageOutline(pageInfo.id().subPage()).toPolygon());
+    const QPolygonF pagePoly(layout.pageOutline(pageInfo.id().subPage()).toPolygon());
+    const QPolygonF merged(intersectPreCropWithPageOutline(pagePoly, newXform.preCropArea()));
+    newXform.setPreCropArea(merged);
     m_nextTask->process(pageInfo, collector, newXform);
     return;
   }

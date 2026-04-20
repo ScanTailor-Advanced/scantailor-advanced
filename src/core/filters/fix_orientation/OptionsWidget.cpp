@@ -5,6 +5,9 @@
 
 #include <core/IconProvider.h>
 
+#include <QSize>
+
+#include <algorithm>
 #include <cassert>
 #include <utility>
 
@@ -14,6 +17,12 @@
 #include "Settings.h"
 
 namespace fix_orientation {
+namespace {
+
+const int kMinInnerSide = 32;
+
+}  // namespace
+
 OptionsWidget::OptionsWidget(std::shared_ptr<Settings> settings, const PageSelectionAccessor& pageSelectionAccessor)
     : m_settings(std::move(settings)),
       m_pageSelectionAccessor(pageSelectionAccessor),
@@ -26,12 +35,15 @@ OptionsWidget::OptionsWidget(std::shared_ptr<Settings> settings, const PageSelec
 
 OptionsWidget::~OptionsWidget() = default;
 
-void OptionsWidget::preUpdateUI(const PageId& pageId, const OrthogonalRotation rotation) {
+void OptionsWidget::preUpdateUI(const PageInfo& pageInfo, const OrthogonalRotation rotation) {
   auto block = m_connectionManager.getScopedBlock();
 
-  m_pageId = pageId;
+  m_pageId = pageInfo.id();
+  m_imagePixelSize = pageInfo.metadata().size();
   m_rotation = rotation;
   setRotationPixmap();
+  updateTrimMaximums();
+  pullTrimToControls();
 }
 
 void OptionsWidget::postUpdateUI(const OrthogonalRotation rotation) {
@@ -100,6 +112,76 @@ void OptionsWidget::setRotation(const OrthogonalRotation& rotation) {
   emit invalidateThumbnail(m_pageId);
 }
 
+void OptionsWidget::trimEnableToggled(const bool checked) {
+  trimLeftSpin->setEnabled(checked);
+  trimRightSpin->setEnabled(checked);
+  trimTopSpin->setEnabled(checked);
+  trimBottomSpin->setEnabled(checked);
+  resetTrimBtn->setEnabled(checked);
+  if (!checked) {
+    m_settings->clearTrim(m_pageId.imageId());
+    emit invalidateThumbnail(m_pageId);
+    return;
+  }
+  pushTrimFromControls();
+}
+
+void OptionsWidget::trimMarginsChanged(const int) {
+  if (!trimEnabledCheck->isChecked()) {
+    return;
+  }
+  pushTrimFromControls();
+}
+
+void OptionsWidget::resetTrim() {
+  auto block = m_connectionManager.getScopedBlock();
+  trimLeftSpin->setValue(0);
+  trimRightSpin->setValue(0);
+  trimTopSpin->setValue(0);
+  trimBottomSpin->setValue(0);
+  if (trimEnabledCheck->isChecked()) {
+    pushTrimFromControls();
+  } else {
+    m_settings->clearTrim(m_pageId.imageId());
+    emit invalidateThumbnail(m_pageId);
+  }
+}
+
+void OptionsWidget::updateTrimMaximums() {
+  const int w = m_imagePixelSize.width();
+  const int h = m_imagePixelSize.height();
+  const int maxSide = std::max(0, std::max(w, h) - kMinInnerSide);
+  trimLeftSpin->setMaximum(maxSide);
+  trimRightSpin->setMaximum(maxSide);
+  trimTopSpin->setMaximum(maxSide);
+  trimBottomSpin->setMaximum(maxSide);
+}
+
+void OptionsWidget::pullTrimToControls() {
+  const ImageTrim trim(m_settings->getTrim(m_pageId.imageId()));
+  trimEnabledCheck->setChecked(trim.enabled);
+  trimLeftSpin->setValue(trim.left);
+  trimRightSpin->setValue(trim.right);
+  trimTopSpin->setValue(trim.top);
+  trimBottomSpin->setValue(trim.bottom);
+  trimLeftSpin->setEnabled(trim.enabled);
+  trimRightSpin->setEnabled(trim.enabled);
+  trimTopSpin->setEnabled(trim.enabled);
+  trimBottomSpin->setEnabled(trim.enabled);
+  resetTrimBtn->setEnabled(trim.enabled);
+}
+
+void OptionsWidget::pushTrimFromControls() {
+  ImageTrim trim;
+  trim.enabled = true;
+  trim.left = trimLeftSpin->value();
+  trim.right = trimRightSpin->value();
+  trim.top = trimTopSpin->value();
+  trim.bottom = trimBottomSpin->value();
+  m_settings->setTrim(m_pageId.imageId(), trim);
+  emit invalidateThumbnail(m_pageId);
+}
+
 void OptionsWidget::setRotationPixmap() {
   QIcon icon;
   switch (m_rotation.toDegrees()) {
@@ -128,6 +210,12 @@ void OptionsWidget::setupUiConnections() {
   CONNECT(rotateRightBtn, SIGNAL(clicked()), this, SLOT(rotateRight()));
   CONNECT(resetBtn, SIGNAL(clicked()), this, SLOT(resetRotation()));
   CONNECT(applyToBtn, SIGNAL(clicked()), this, SLOT(showApplyToDialog()));
+  CONNECT(trimEnabledCheck, SIGNAL(toggled(bool)), this, SLOT(trimEnableToggled(bool)));
+  CONNECT(trimLeftSpin, SIGNAL(valueChanged(int)), this, SLOT(trimMarginsChanged(int)));
+  CONNECT(trimRightSpin, SIGNAL(valueChanged(int)), this, SLOT(trimMarginsChanged(int)));
+  CONNECT(trimTopSpin, SIGNAL(valueChanged(int)), this, SLOT(trimMarginsChanged(int)));
+  CONNECT(trimBottomSpin, SIGNAL(valueChanged(int)), this, SLOT(trimMarginsChanged(int)));
+  CONNECT(resetTrimBtn, SIGNAL(clicked()), this, SLOT(resetTrim()));
 }
 
 #undef CONNECT

@@ -6,12 +6,13 @@
 
 #include <core/ConnectionManager.h>
 
-#include <list>
 #include <memory>
 
 #include "FilterOptionsWidget.h"
+#include "ImageTrim.h"
 #include "OrthogonalRotation.h"
 #include "PageId.h"
+#include "PageInfo.h"
 #include "PageSelectionAccessor.h"
 #include "ui_OptionsWidget.h"
 
@@ -25,7 +26,7 @@ class OptionsWidget : public FilterOptionsWidget, private Ui::OptionsWidget {
 
   ~OptionsWidget() override;
 
-  void preUpdateUI(const PageId& pageId, OrthogonalRotation rotation);
+  void preUpdateUI(const PageInfo& pageInfo, OrthogonalRotation rotation);
 
   void postUpdateUI(OrthogonalRotation rotation);
 
@@ -47,6 +48,12 @@ class OptionsWidget : public FilterOptionsWidget, private Ui::OptionsWidget {
 
   void appliedToAllPages(const std::set<PageId>& pages);
 
+  void trimEnableToggled(bool checked);
+
+  void trimMarginsChanged(int value);
+
+  void resetTrim();
+
  private:
   void setRotation(const OrthogonalRotation& rotation);
 
@@ -56,9 +63,16 @@ class OptionsWidget : public FilterOptionsWidget, private Ui::OptionsWidget {
 
   void setupIcons();
 
+  void updateTrimMaximums();
+
+  void pullTrimToControls();
+
+  void pushTrimFromControls();
+
   std::shared_ptr<Settings> m_settings;
   PageSelectionAccessor m_pageSelectionAccessor;
   PageId m_pageId;
+  QSize m_imagePixelSize;
   OrthogonalRotation m_rotation;
 
   ConnectionManager m_connectionManager;

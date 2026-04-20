@@ -6,6 +6,7 @@ set(ui_files
 
 set(sources
     DeskewExternalToolSpike.h
+    ImageTrim.cpp ImageTrim.h
     ImageView.cpp ImageView.h
     Filter.cpp Filter.h
     OptionsWidget.cpp OptionsWidget.h
