@@ -2,9 +2,9 @@ name: CMake
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [master, main]
   pull_request:
-    branches: [ "master" ]
+    branches: [master, main]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -24,10 +24,10 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y --fix-missing \
-          gcc g++ cmake \
+          build-essential gcc g++ cmake \
           libjpeg-dev libpng-dev \
-          libtiff6 libtiff5-dev \
-          libboost-test-dev \
+          libtiff6 libtiff-dev zlib1g-dev \
+          libboost-test-dev libboost-dev \
           qtbase5-dev libqt5svg5-dev \
           qttools5-dev qttools5-dev-tools \
           libqt5opengl5-dev \

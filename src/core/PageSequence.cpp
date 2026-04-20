@@ -3,6 +3,8 @@
 
 #include "PageSequence.h"
 
+#include <vector>
+
 void PageSequence::append(const PageInfo& pageInfo) {
   m_pages.push_back(pageInfo);
 }
@@ -74,6 +76,48 @@ std::set<PageId> PageSequence::selectEveryOther(const PageId& base) const {
       selection.insert(pageInfo.id());
     }
     ++idx;
+  }
+  return selection;
+}
+
+std::set<PageId> PageSequence::selectThisPageAndFollowingEveryOther(const PageId& page) const {
+  std::set<PageId> selection;
+  const int baseIdx = pageNo(page);
+  if (baseIdx < 0) {
+    return selection;
+  }
+  for (size_t i = static_cast<size_t>(baseIdx); i < m_pages.size(); i += 2) {
+    selection.insert(m_pages[i].id());
+  }
+  return selection;
+}
+
+std::set<PageId> PageSequence::selectEveryOtherInSubsetFromPage(const PageId& base,
+                                                                const std::set<PageId>& subset) const {
+  std::set<PageId> selection;
+  if (subset.empty()) {
+    return selection;
+  }
+  std::vector<PageId> ordered;
+  ordered.reserve(subset.size());
+  for (size_t i = 0; i < m_pages.size(); ++i) {
+    const PageId id = m_pages[i].id();
+    if (subset.count(id) != 0) {
+      ordered.push_back(id);
+    }
+  }
+  int start = -1;
+  for (size_t i = 0; i < ordered.size(); ++i) {
+    if (ordered[i] == base) {
+      start = static_cast<int>(i);
+      break;
+    }
+  }
+  if (start < 0) {
+    return selection;
+  }
+  for (int i = start; i < static_cast<int>(ordered.size()); i += 2) {
+    selection.insert(ordered[i]);
   }
   return selection;
 }

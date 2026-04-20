@@ -76,7 +76,9 @@ Go to [this repository](https://github.com/ScanTailor-Advanced/scantailor-libs-b
 
 **Linux – Wayland (issue #97):** If you see rendering issues (blank or corrupted windows) when running under Wayland, try starting the application with `QT_QPA_PLATFORM=xcb` to use the X11 compatibility layer.
 
-**Linux – Flatpak / Flathub (issue #105):** A Flatpak manifest is provided in `flatpak/org.scantailor.Advanced.json`. To build locally: `flatpak-builder --user --force-clean build flatpak/org.scantailor.Advanced.json` (requires `flatpak` and `flatpak-builder`). To publish on Flathub, use a distinct application ID (e.g. `org.scantailor.Advanced`) so it does not conflict with the original ScanTailor package.
+**Linux – Flatpak / Flathub (issue #105):** End users should prefer **pre-built** binaries from [GitHub Releases](https://github.com/ScanTailor-Advanced/scantailor-advanced/releases) when available (`.deb` / AppImage on tagged releases). A Flatpak manifest for **maintainers** is in `flatpak/org.scantailor.Advanced.json` (`flatpak-builder --user --force-clean build flatpak/org.scantailor.Advanced.json`). Publishing on Flathub needs a **new** application ID (e.g. `org.scantailor.Advanced`) so it does not replace the legacy `com.github._4lex4.*` app.
+
+**Community examples / test data:** See also [scantailor-testing](https://github.com/ImageProcessing-ElectronicPublications/scantailor-testing) (community repository; issue [#43](https://github.com/ScanTailor-Advanced/scantailor-advanced/issues/43)).
 
 ## About this fork
 

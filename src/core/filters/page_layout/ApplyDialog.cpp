@@ -51,14 +51,7 @@ void ApplyDialog::onSubmit() {
   } else if (everyOtherRB->isChecked()) {
     m_pages.selectEveryOther(m_curPage).swap(pages);
   } else if (thisEveryOtherRB->isChecked()) {
-    std::set<PageId> tmp;
-    m_pages.selectPagePlusFollowers(m_curPage).swap(tmp);
-    auto it = tmp.begin();
-    for (int i = 0; it != tmp.end(); ++it, ++i) {
-      if (i % 2 == 0) {
-        pages.insert(*it);
-      }
-    }
+    m_pages.selectThisPageAndFollowingEveryOther(m_curPage).swap(pages);
   } else if (everyOtherSelectedRB->isChecked()) {
     assert(m_selectedRanges.size() == 1);
     const PageRange& range = m_selectedRanges.front();

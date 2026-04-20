@@ -49,13 +49,7 @@ void ApplyDialog::onSubmit() {
   } else if (everyOtherRB->isChecked()) {
     m_pages.selectEveryOther(m_curPage).swap(pages);
   } else if (thisEveryOtherRB->isChecked()) {
-    // "This page and the following every other" in document order (issue #84).
-    const int baseIdx = m_pages.pageNo(m_curPage);
-    if (baseIdx >= 0) {
-      for (size_t i = static_cast<size_t>(baseIdx); i < m_pages.numPages(); i += 2) {
-        pages.insert(m_pages.pageAt(i).id());
-      }
-    }
+    m_pages.selectThisPageAndFollowingEveryOther(m_curPage).swap(pages);
   } else if (everyOtherSelectedRB->isChecked()) {
     assert(m_selectedRanges.size() == 1);
     const PageRange& range = m_selectedRanges.front();
