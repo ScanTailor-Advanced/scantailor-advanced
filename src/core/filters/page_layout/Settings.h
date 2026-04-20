@@ -141,6 +141,15 @@ class Settings {
    */
   QSizeF getAggregateHardSizeMM(const PageId& pageId, const QSizeF& hardSizeMm, const Alignment& alignment) const;
 
+  /**
+   * \brief When frozen, getAggregateHardSizeMM() returns a fixed reference size
+   *        until unfrozen, so the "match size" target does not change when
+   *        switching pages.
+   */
+  void setAggregateHardSizeFrozen(bool frozen);
+
+  bool isAggregateHardSizeFrozen() const;
+
   bool isPageAutoMarginsEnabled(const PageId& pageId);
 
   void setPageAutoMarginsEnabled(const PageId& pageId, bool state);
