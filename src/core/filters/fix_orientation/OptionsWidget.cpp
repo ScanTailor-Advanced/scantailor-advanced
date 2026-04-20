@@ -83,6 +83,7 @@ void OptionsWidget::appliedTo(const std::set<PageId>& pages) {
   }
 
   m_settings->applyRotation(pages, m_rotation);
+  m_settings->applyTrim(pages, currentTrimFromControls());
 
   if (pages.size() > 1) {
     emit invalidateAllThumbnails();
@@ -95,6 +96,7 @@ void OptionsWidget::appliedTo(const std::set<PageId>& pages) {
 
 void OptionsWidget::appliedToAllPages(const std::set<PageId>& pages) {
   m_settings->applyRotation(pages, m_rotation);
+  m_settings->applyTrim(pages, currentTrimFromControls());
   emit invalidateAllThumbnails();
 }
 
@@ -172,14 +174,25 @@ void OptionsWidget::pullTrimToControls() {
 }
 
 void OptionsWidget::pushTrimFromControls() {
+  const ImageTrim trim(currentTrimFromControls());
+  if (!trim.enabled) {
+    return;
+  }
+  m_settings->setTrim(m_pageId.imageId(), trim);
+  emit invalidateThumbnail(m_pageId);
+}
+
+ImageTrim OptionsWidget::currentTrimFromControls() const {
   ImageTrim trim;
-  trim.enabled = true;
+  trim.enabled = trimEnabledCheck->isChecked();
+  if (!trim.enabled) {
+    return trim;
+  }
   trim.left = trimLeftSpin->value();
   trim.right = trimRightSpin->value();
   trim.top = trimTopSpin->value();
   trim.bottom = trimBottomSpin->value();
-  m_settings->setTrim(m_pageId.imageId(), trim);
-  emit invalidateThumbnail(m_pageId);
+  return trim;
 }
 
 void OptionsWidget::setRotationPixmap() {

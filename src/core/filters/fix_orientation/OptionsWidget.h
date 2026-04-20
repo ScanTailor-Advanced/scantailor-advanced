@@ -69,6 +69,8 @@ class OptionsWidget : public FilterOptionsWidget, private Ui::OptionsWidget {
 
   void pushTrimFromControls();
 
+  ImageTrim currentTrimFromControls() const;
+
   std::shared_ptr<Settings> m_settings;
   PageSelectionAccessor m_pageSelectionAccessor;
   PageId m_pageId;
