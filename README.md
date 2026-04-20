@@ -70,6 +70,10 @@ Go to [this repository](https://github.com/ScanTailor-Advanced/scantailor-libs-b
 
 **Windows – large JPEG/PNG (issue #20):** If large-format JPEG or PNG files fail to load on Windows, ensure the build uses **libjpeg-turbo** (or libjpeg 9+) and a recent libpng. The [scantailor-libs-build](https://github.com/ScanTailor-Advanced/scantailor-libs-build) repository provides compatible libraries.
 
+**Windows – Visual C++ runtime (issue #101):** Pre-built binaries are linked with **Microsoft Visual C++** (MSVC) runtimes. If the application does not start and Windows reports missing **`VCRUNTIME*.dll`**, **`MSVCP*.dll`**, or similar, install the **latest supported x64 “Visual C++ Redistributable”** from Microsoft’s page: [Latest supported VC++ Redistributable downloads](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170). Match **x64** vs **x86** to the build you run.
+
+**Windows – supported OS versions (issue #101):** Release builds follow upstream **Qt** and **toolchain** support policies; **legacy Windows** (for example Windows 7) is **not** exercised in this project’s CI and is **best-effort only**. You may need an **older tagged release** or a **self-built** binary against an older Qt/MSVC stack. Community reports (including compatibility tips) are welcome in the issue tracker.
+
 **Linux – Wayland (issue #97):** If you see rendering issues (blank or corrupted windows) when running under Wayland, try starting the application with `QT_QPA_PLATFORM=xcb` to use the X11 compatibility layer.
 
 **Linux – Flatpak / Flathub (issue #105):** A Flatpak manifest is provided in `flatpak/org.scantailor.Advanced.json`. To build locally: `flatpak-builder --user --force-clean build flatpak/org.scantailor.Advanced.json` (requires `flatpak` and `flatpak-builder`). To publish on Flathub, use a distinct application ID (e.g. `org.scantailor.Advanced`) so it does not conflict with the original ScanTailor package.

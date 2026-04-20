@@ -7,20 +7,22 @@ bin/
 lib/
 *.dir/
 
-# CMake
+# CMake (generated). Tracked helper modules live under cmake/.
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
 Makefile
 *.cmake
 !CMakeLists.txt
+!cmake/**/*.cmake
 *.cbp
 CTestTestfile.cmake
 _deps/
 install_manifest.txt
 compile_commands.json
+CMakeUserPresets.json
 
-# C/C++ compilado
+# C/C++ build artifacts
 *.o
 *.obj
 *.a
@@ -60,7 +62,8 @@ ui_*.h
 *.includes
 *.config
 
-# IDEs y editores
+# Editors / IDEs
+.cursor/
 .vscode/
 .idea/
 *.sublime-project
@@ -69,16 +72,25 @@ ui_*.h
 *.swp
 *.swo
 .*.sw?
+.clangd
+.cache/clangd/
+*.code-workspace
 
-# Sistema operativo
+# Visual Studio (CMake "Open Folder")
+.vs/
+CMakeSettings.json
+CppProperties.json
+
+# Operating system junk
 .DS_Store
 .DS_Store?
 ._*
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+.directory
 
-# Depuradores y profiling
+# Debuggers / profiling
 *.core
 /core
 *.stackdump
@@ -91,20 +103,27 @@ Desktop.ini
 perf.data
 perf.data.old
 
-# Documentación generada
+# Ctags / cscope
+tags
+TAGS
+GTAGS
+GRTAGS
+GPATH
+cscope.out
+
+# Generated docs
 doc/html/
 doc/latex/
 docs/_build/
 *.dox
 
-# Tests y cobertura
+# Tests / coverage output
 Testing/
 test_results/
 coverage/
-*.gcov
 lcov.info
 
-# Empaquetado y distribución
+# Packaging / distribution artifacts
 *.tar
 *.tar.gz
 *.zip
@@ -112,15 +131,27 @@ lcov.info
 *.deb
 *.rpm
 *.msi
+*.AppImage
+*.flatpak
 packaging/build/
 
-# Variables de entorno / local
+# flatpak-builder output (local smoke builds / CI)
+.flatpak-builder/
+flatpak/.flatpak-builder/
+repo/
+build-dir/
+
+# Patch / merge leftovers
+*.orig
+*.rej
+
+# Local env / CMake overrides
 .env
 .env.local
 *.local
 local.cmake
 
-# Otros
+# Misc
 *.log
 *.tmp
 *.temp

@@ -106,7 +106,7 @@ MainWindow::MainWindow()
       m_interactiveQueue(std::make_unique<ProcessingTaskQueue>()),
       m_outOfMemoryDialog(std::make_unique<OutOfMemoryDialog>()),
       m_curFilter(0),
-      m_savedZoomLevel(1.0),
+      m_savedMainAreaViewState(),
       m_ignoreSelectionChanges(0),
       m_ignorePageOrderingChanges(0),
       m_debug(false),
@@ -710,6 +710,54 @@ void MainWindow::setOptionsWidget(FilterOptionsWidget* widget, const Ownership o
   connect(widget, SIGNAL(fixDpiRequested()), this, SLOT(fixDpiDialogRequested()));
 }  // MainWindow::setOptionsWidget
 
+ImageViewBase* MainWindow::findPrimaryImageView(QWidget* root) {
+  if (!root) {
+    return nullptr;
+  }
+  if (auto* tabs = qobject_cast<output::TabbedImageView*>(root)) {
+    QWidget* const page = tabs->currentWidget();
+    if (page) {
+      return Utils::castOrFindChild<ImageViewBase*>(page);
+    }
+    return nullptr;
+  }
+  return Utils::castOrFindChild<ImageViewBase*>(root);
+}
+
+void MainWindow::applySavedMainAreaViewState(ImageViewBase* view, const SavedMainAreaViewState& state) {
+  if (!view) {
+    return;
+  }
+  view->setZoomLevel(state.zoom);
+  if (!state.hasScrollNorm) {
+    return;
+  }
+  QScrollBar* const h = view->horizontalScrollBar();
+  QScrollBar* const v = view->verticalScrollBar();
+  const int hr = h->maximum() - h->minimum();
+  const int vr = v->maximum() - v->minimum();
+  if (hr <= 0 || vr <= 0) {
+    return;
+  }
+  const double nx = qBound(0.0, state.scrollNormX, 1.0);
+  const double ny = qBound(0.0, state.scrollNormY, 1.0);
+  h->setValue(h->minimum() + qRound(nx * hr));
+  v->setValue(v->minimum() + qRound(ny * vr));
+}
+
+void MainWindow::scheduleSavedMainAreaViewStateRestore(const QPointer<ImageViewBase>& view) {
+  if (view.isNull()) {
+    return;
+  }
+  const SavedMainAreaViewState state = m_savedMainAreaViewState;
+  QTimer::singleShot(0, this, [view, state]() {
+    if (view.isNull()) {
+      return;
+    }
+    MainWindow::applySavedMainAreaViewState(view.data(), state);
+  });
+}
+
 void MainWindow::setImageWidget(QWidget* widget, const Ownership ownership, DebugImages* debugImages, bool overlay) {
   if (isBatchProcessingInProgress() && (widget != m_batchProcessingWidget.get())) {
     if (ownership == TRANSFER_OWNERSHIP) {
@@ -720,8 +768,19 @@ void MainWindow::setImageWidget(QWidget* widget, const Ownership ownership, Debu
 
   if (!overlay && m_imageFrameLayout->count() > 0) {
     QWidget* oldW = m_imageFrameLayout->widget(0);
-    if (ImageViewBase* oldView = Utils::castOrFindChild<ImageViewBase*>(oldW)) {
-      m_savedZoomLevel = oldView->zoomLevel();
+    if (ImageViewBase* oldView = findPrimaryImageView(oldW)) {
+      m_savedMainAreaViewState.zoom = oldView->zoomLevel();
+      QScrollBar* const h = oldView->horizontalScrollBar();
+      QScrollBar* const v = oldView->verticalScrollBar();
+      const int hr = h->maximum() - h->minimum();
+      const int vr = v->maximum() - v->minimum();
+      if (hr > 0 && vr > 0) {
+        m_savedMainAreaViewState.hasScrollNorm = true;
+        m_savedMainAreaViewState.scrollNormX = double(h->value() - h->minimum()) / hr;
+        m_savedMainAreaViewState.scrollNormY = double(v->value() - v->minimum()) / vr;
+      } else {
+        m_savedMainAreaViewState.hasScrollNorm = false;
+      }
     }
   }
 
@@ -739,8 +798,8 @@ void MainWindow::setImageWidget(QWidget* widget, const Ownership ownership, Debu
       if (overlay) {
         m_imageFrameLayout->setCurrentWidget(widget);
       }
-      if (ImageViewBase* newView = Utils::castOrFindChild<ImageViewBase*>(widget)) {
-        newView->setZoomLevel(m_savedZoomLevel);
+      if (ImageViewBase* newView = findPrimaryImageView(widget)) {
+        scheduleSavedMainAreaViewStateRestore(QPointer<ImageViewBase>(newView));
       }
     }
   } else {
