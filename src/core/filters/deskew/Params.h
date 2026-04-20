@@ -25,19 +25,26 @@ struct RotationParams {
   AutoManualMode mode = MODE_AUTO;
 };
 
-/** Oblique (shear) angle in degrees and whether to run automatic oblique detection. */
+/** Oblique (shear) angle in degrees and its own auto/manual mode (issue #117). */
 struct ObliqueParams {
   double obliqueAngle = 0.0;
-  bool autoOblique = true;
+  AutoManualMode mode = MODE_AUTO;
 };
 
 class Params {
  public:
   // Member-wise copying is OK.
 
-  Params(double deskewAngleDeg, const Dependencies& deps, AutoManualMode mode);
+  Params(double deskewAngleDeg, const Dependencies& deps, AutoManualMode deskewMode);
 
-  Params(double deskewAngleDeg, double obliqueDeg, const Dependencies& deps, AutoManualMode mode, bool autoOblique);
+  Params(double deskewAngleDeg,
+         double obliqueDeg,
+         const Dependencies& deps,
+         AutoManualMode deskewMode,
+         AutoManualMode obliqueMode);
+
+  /** Legacy: oblique mode matches \p mode (coupled deskew/oblique). */
+  Params(double deskewAngleDeg, double obliqueDeg, const Dependencies& deps, AutoManualMode mode);
 
   explicit Params(const QDomElement& deskewEl);
 
@@ -47,11 +54,14 @@ class Params {
 
   double obliqueAngle() const;
 
-  bool autoOblique() const;
-
   const Dependencies& dependencies() const;
 
   AutoManualMode mode() const;
+
+  AutoManualMode obliqueMode() const;
+
+  /** Legacy (#114): true when oblique runs in automatic mode. */
+  bool autoOblique() const;
 
   QDomElement toXml(QDomDocument& doc, const QString& name) const;
 
@@ -70,16 +80,20 @@ inline double Params::obliqueAngle() const {
   return m_oblique.obliqueAngle;
 }
 
-inline bool Params::autoOblique() const {
-  return m_oblique.autoOblique;
-}
-
 inline const Dependencies& Params::dependencies() const {
   return m_deps;
 }
 
 inline AutoManualMode Params::mode() const {
   return m_rotation.mode;
+}
+
+inline AutoManualMode Params::obliqueMode() const {
+  return m_oblique.mode;
+}
+
+inline bool Params::autoOblique() const {
+  return m_oblique.mode == MODE_AUTO;
 }
 }  // namespace deskew
 

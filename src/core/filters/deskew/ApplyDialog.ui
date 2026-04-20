@@ -140,6 +140,35 @@
     </widget>
    </item>
    <item>
+    <widget class="QGroupBox" name="applyPartsGroupBox">
+     <property name="title">
+      <string>Apply parameters</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_apply_parts">
+      <item>
+       <widget class="QCheckBox" name="applyDeskewCheckBox">
+        <property name="text">
+         <string>Deskew angle and mode</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="applyObliqueCheckBox">
+        <property name="text">
+         <string>Oblique angle and mode</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>

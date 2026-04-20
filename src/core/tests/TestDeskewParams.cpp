@@ -21,7 +21,7 @@ BOOST_AUTO_TEST_CASE(params_oblique_roundtrip_xml) {
   const double deskewDeg = 1.5;
   const double obliqueDeg = 2.25;
   const Dependencies deps;
-  const Params original(deskewDeg, obliqueDeg, deps, MODE_MANUAL, true);
+  const Params original(deskewDeg, obliqueDeg, deps, MODE_MANUAL, MODE_MANUAL);
 
   QDomDocument doc;
   const QDomElement el = original.toXml(doc, "deskew-params");
@@ -32,12 +32,13 @@ BOOST_AUTO_TEST_CASE(params_oblique_roundtrip_xml) {
   BOOST_CHECK_CLOSE(restored.deskewAngle(), deskewDeg, 1e-6);
   BOOST_CHECK_CLOSE(restored.obliqueAngle(), obliqueDeg, 1e-6);
   BOOST_CHECK(restored.mode() == MODE_MANUAL);
+  BOOST_CHECK(restored.obliqueMode() == MODE_MANUAL);
 }
 
 BOOST_AUTO_TEST_CASE(params_zero_oblique_roundtrip_xml) {
   const double deskewDeg = -0.5;
   const Dependencies deps;
-  const Params original(deskewDeg, 0.0, deps, MODE_AUTO, true);
+  const Params original(deskewDeg, 0.0, deps, MODE_AUTO, MODE_AUTO);
 
   QDomDocument doc;
   const QDomElement el = original.toXml(doc, "deskew-params");
@@ -48,11 +49,12 @@ BOOST_AUTO_TEST_CASE(params_zero_oblique_roundtrip_xml) {
   BOOST_CHECK_CLOSE(restored.deskewAngle(), deskewDeg, 1e-6);
   BOOST_CHECK_CLOSE(restored.obliqueAngle(), 0.0, 1e-6);
   BOOST_CHECK(restored.mode() == MODE_AUTO);
+  BOOST_CHECK(restored.obliqueMode() == MODE_AUTO);
 }
 
-BOOST_AUTO_TEST_CASE(params_auto_oblique_false_roundtrip_xml) {
+BOOST_AUTO_TEST_CASE(params_independent_oblique_mode_xml) {
   const Dependencies deps;
-  const Params original(1.0, 0.25, deps, MODE_AUTO, false);
+  const Params original(1.0, 2.0, deps, MODE_MANUAL, MODE_AUTO);
 
   QDomDocument doc;
   const QDomElement el = original.toXml(doc, "deskew-params");
@@ -60,6 +62,21 @@ BOOST_AUTO_TEST_CASE(params_auto_oblique_false_roundtrip_xml) {
 
   const Params restored(doc.documentElement());
 
+  BOOST_CHECK(restored.mode() == MODE_MANUAL);
+  BOOST_CHECK(restored.obliqueMode() == MODE_AUTO);
+}
+
+BOOST_AUTO_TEST_CASE(params_auto_oblique_false_roundtrip_xml) {
+  const Dependencies deps;
+  const Params original(1.0, 0.25, deps, MODE_AUTO, MODE_MANUAL);
+
+  QDomDocument doc;
+  const QDomElement el = original.toXml(doc, "deskew-params");
+  doc.appendChild(el);
+
+  const Params restored(doc.documentElement());
+
+  BOOST_CHECK(restored.obliqueMode() == MODE_MANUAL);
   BOOST_CHECK(!restored.autoOblique());
   BOOST_CHECK_CLOSE(restored.obliqueAngle(), 0.25, 1e-6);
 }

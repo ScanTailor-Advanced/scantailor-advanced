@@ -14,6 +14,7 @@
 #include <UnitsProvider.h>
 #include <UpscaleIntegerTimes.h>
 #include <core/ApplicationSettings.h>
+#include <core/DefaultParamsProvider.h>
 #include <imageproc/Grayscale.h>
 #include <imageproc/OrthogonalRotation.h>
 #include <imageproc/PolygonRasterizer.h>
@@ -21,11 +22,7 @@
 
 #include <QPolygonF>
 #include <QTransform>
-#include <optional>
 #include <utility>
-
-#include <core/DefaultParams.h>
-#include <core/DefaultParamsProvider.h>
 
 #include "DebugImagesImpl.h"
 #include "Dpm.h"
@@ -107,11 +104,11 @@ FilterResultPtr Task::process(const TaskStatus& status, FilterData data) {
     } else {
       uiData.setEffectiveDeskewAngle(params->deskewAngle());
       uiData.setEffectiveObliqueAngle(params->obliqueAngle());
-      uiData.setAutoOblique(params->autoOblique());
       uiData.setMode(params->mode());
+      uiData.setObliqueMode(params->obliqueMode());
 
       Params newParams(uiData.effectiveDeskewAngle(), uiData.effectiveObliqueAngle(), deps, uiData.mode(),
-                       uiData.autoOblique());
+                       uiData.obliqueMode());
       m_settings->setPageParams(m_pageId, newParams);
     }
   }
@@ -164,7 +161,7 @@ FilterResultPtr Task::process(const TaskStatus& status, FilterData data) {
         uiData.setEffectiveDeskewAngle(0);
       }
       uiData.setMode(MODE_AUTO);
-      uiData.setAutoOblique(autoObliqueEnabled);
+      uiData.setObliqueMode(autoObliqueEnabled ? MODE_AUTO : MODE_MANUAL);
 
       if (autoObliqueEnabled) {
         // Find oblique on the deskewed (horizontal) mask for better accuracy (PR #110 feedback).
@@ -202,7 +199,7 @@ FilterResultPtr Task::process(const TaskStatus& status, FilterData data) {
       }
 
       Params newParams(uiData.effectiveDeskewAngle(), uiData.effectiveObliqueAngle(), deps, uiData.mode(),
-                       uiData.autoOblique());
+                       uiData.obliqueMode());
       m_settings->setPageParams(m_pageId, newParams);
 
       status.throwIfCancelled();

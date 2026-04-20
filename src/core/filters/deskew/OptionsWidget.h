@@ -46,16 +46,16 @@ class OptionsWidget : public FilterOptionsWidget, private Ui::OptionsWidget {
 
     AutoManualMode mode() const;
 
-    void setAutoOblique(bool enabled);
+    void setObliqueMode(AutoManualMode mode);
 
-    bool autoOblique() const;
+    AutoManualMode obliqueMode() const;
 
    private:
     double m_effDeskewAngle;
     double m_effObliqueAngle;
     Dependencies m_deps;
     AutoManualMode m_mode;
-    bool m_autoOblique;
+    AutoManualMode m_obliqueMode;
   };
 
 
@@ -88,18 +88,20 @@ class OptionsWidget : public FilterOptionsWidget, private Ui::OptionsWidget {
 
   void modeChanged(bool autoMode);
 
-  void topEdgeToggled(bool checked);
+  void obliqueModeChanged(bool autoMode);
 
-  void autoObliqueToggled(bool checked);
+  void topEdgeToggled(bool checked);
 
   void showDeskewDialog();
 
-  void appliedTo(const std::set<PageId>& pages);
+  void appliedTo(const std::set<PageId>& pages, bool applyDeskew, bool applyOblique);
 
-  void appliedToAllPages(const std::set<PageId>& pages);
+  void appliedToAllPages(const std::set<PageId>& pages, bool applyDeskew, bool applyOblique);
 
  private:
   void updateModeIndication(AutoManualMode mode);
+
+  void updateObliqueModeIndication(AutoManualMode mode);
 
   void setSpinBoxUnknownState();
 
@@ -157,12 +159,12 @@ inline AutoManualMode OptionsWidget::UiData::mode() const {
   return m_mode;
 }
 
-inline void OptionsWidget::UiData::setAutoOblique(const bool enabled) {
-  m_autoOblique = enabled;
+inline void OptionsWidget::UiData::setObliqueMode(const AutoManualMode mode) {
+  m_obliqueMode = mode;
 }
 
-inline bool OptionsWidget::UiData::autoOblique() const {
-  return m_autoOblique;
+inline AutoManualMode OptionsWidget::UiData::obliqueMode() const {
+  return m_obliqueMode;
 }
 }  // namespace deskew
 

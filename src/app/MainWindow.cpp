@@ -10,6 +10,7 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QFileSystemModel>
+#include <QMenu>
 #include <QMessageBox>
 #include <QResource>
 #include <QScrollBar>
@@ -301,6 +302,7 @@ MainWindow::MainWindow()
   });
 
   connect(actionFixDpi, SIGNAL(triggered(bool)), SLOT(fixDpiDialogRequested()));
+  connect(actionReverseTwoPageOrder, SIGNAL(triggered(bool)), SLOT(toggleTwoPageSpreadReadingOrder()));
   connect(actionRelinking, SIGNAL(triggered(bool)), SLOT(showRelinkingDialog()));
 #ifdef ENABLE_DEBUG_FEATURES
   connect(actionDebug, SIGNAL(toggled(bool)), SLOT(debugToggled(bool)));
@@ -1016,7 +1018,8 @@ void MainWindow::pageContextMenuRequested(const PageInfo& pageInfo_, const QPoin
     goToPage(pageInfo.id());
   }
 
-  QMenu menu;
+  // Parent widget helps correct multi-monitor placement (issue #75).
+  QMenu menu(thumbView);
 
   auto& iconProvider = IconProvider::getInstance();
   QAction* insBefore = menu.addAction(iconProvider.getIcon("insert-before"), tr("Insert before ..."));
@@ -1036,12 +1039,24 @@ void MainWindow::pageContextMenuRequested(const PageInfo& pageInfo_, const QPoin
   }
 }  // MainWindow::pageContextMenuRequested
 
+void MainWindow::toggleTwoPageSpreadReadingOrder() {
+  if (!isProjectLoaded() || !m_pages) {
+    return;
+  }
+  const Qt::LayoutDirection nextDir
+      = (m_pages->layoutDirection() == Qt::LeftToRight) ? Qt::RightToLeft : Qt::LeftToRight;
+  m_pages->setLayoutDirection(nextDir);
+  m_outFileNameGen.setLayoutDirection(nextDir);
+  resetThumbSequence(currentPageOrderProvider(), ThumbnailSequence::KEEP_SELECTION);
+  invalidateAllThumbnails();
+}
+
 void MainWindow::pastLastPageContextMenuRequested(const QPoint& screenPos) {
   if (!isProjectLoaded()) {
     return;
   }
 
-  QMenu menu;
+  QMenu menu(thumbView);
   menu.addAction(IconProvider::getInstance().getIcon("insert-here"), tr("Insert here ..."));
 
   if (menu.exec(screenPos)) {
@@ -1579,6 +1594,7 @@ void MainWindow::updateProjectActions() {
   actionSaveProjectAs->setEnabled(loaded);
   actionFixDpi->setEnabled(loaded);
   actionRelinking->setEnabled(loaded);
+  actionReverseTwoPageOrder->setEnabled(loaded);
 }
 
 bool MainWindow::isBatchProcessingInProgress() const {
