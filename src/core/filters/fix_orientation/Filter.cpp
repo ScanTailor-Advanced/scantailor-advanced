@@ -12,11 +12,11 @@
 #include "CacheDrivenTask.h"
 #include "FilterUiInterface.h"
 #include "ImageSettings.h"
+#include "ImageTrim.h"
 #include "OptionsWidget.h"
 #include "ProjectReader.h"
 #include "ProjectWriter.h"
 #include "Settings.h"
-#include "ImageTrim.h"
 #include "Task.h"
 #include "Utils.h"
 
