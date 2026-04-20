@@ -9,6 +9,7 @@
 #include <unordered_map>
 
 #include "ImageId.h"
+#include "ImageTrim.h"
 #include "NonCopyable.h"
 #include "OrthogonalRotation.h"
 #include "PageId.h"
@@ -36,13 +37,21 @@ class Settings {
 
   bool isRotationNull(const ImageId& imageId) const;
 
+  void setTrim(const ImageId& imageId, const ImageTrim& trim);
+
+  ImageTrim getTrim(const ImageId& imageId) const;
+
+  void clearTrim(const ImageId& imageId);
+
  private:
   using PerImageRotation = std::unordered_map<ImageId, OrthogonalRotation>;
+  using PerImageTrim = std::unordered_map<ImageId, ImageTrim>;
 
   void setImageRotationLocked(const ImageId& imageId, const OrthogonalRotation& rotation);
 
   mutable QMutex m_mutex;
   PerImageRotation m_perImageRotation;
+  PerImageTrim m_perImageTrim;
 };
 }  // namespace fix_orientation
 #endif  // ifndef SCANTAILOR_FIX_ORIENTATION_SETTINGS_H_

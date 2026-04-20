@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "ImageTransformation.h"
+#include "ImageTrim.h"
 #include "PageInfo.h"
 #include "Settings.h"
 #include "ThumbnailBase.h"
@@ -25,6 +26,12 @@ void CacheDrivenTask::process(const PageInfo& pageInfo, AbstractFilterDataCollec
   const QRectF initialRect(QPointF(0.0, 0.0), pageInfo.metadata().size());
   ImageTransformation xform(initialRect, pageInfo.metadata().dpi());
   xform.setPreRotation(m_settings->getRotationFor(pageInfo.imageId()));
+
+  const ImageTrim trim(m_settings->getTrim(pageInfo.imageId()));
+  if (trim.enabled) {
+    const QRect inner(trim.toInnerRect(pageInfo.metadata().size()));
+    xform.setPreCropArea(xform.origRectToPreCropSpace(QRectF(inner)));
+  }
 
   if (auto* col = dynamic_cast<PageOrientationCollector*>(collector)) {
     col->process(xform.preRotation());

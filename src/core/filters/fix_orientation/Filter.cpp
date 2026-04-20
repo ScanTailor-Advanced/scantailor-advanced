@@ -16,9 +16,9 @@
 #include "ProjectReader.h"
 #include "ProjectWriter.h"
 #include "Settings.h"
+#include "ImageTrim.h"
 #include "Task.h"
 #include "Utils.h"
-#include "XmlMarshaller.h"
 
 namespace fix_orientation {
 Filter::Filter(const PageSelectionAccessor& pageSelectionAccessor)
@@ -44,7 +44,7 @@ void Filter::performRelinking(const AbstractRelinker& relinker) {
 void Filter::preUpdateUI(FilterUiInterface* ui, const PageInfo& pageInfo) {
   if (m_optionsWidget.get()) {
     const OrthogonalRotation rotation(m_settings->getRotationFor(pageInfo.id().imageId()));
-    m_optionsWidget->preUpdateUI(pageInfo.id(), rotation);
+    m_optionsWidget->preUpdateUI(pageInfo, rotation);
     ui->setOptionsWidget(m_optionsWidget.get(), ui->KEEP_OWNERSHIP);
   }
 }
@@ -85,9 +85,22 @@ void Filter::loadSettings(const ProjectReader& reader, const QDomElement& filter
       continue;
     }
 
-    const OrthogonalRotation rotation(el.namedItem("rotation").toElement());
+    const QDomElement rotationEl(el.namedItem("rotation").toElement());
+    if (!rotationEl.isNull()) {
+      const OrthogonalRotation rotation(rotationEl);
+      m_settings->applyRotation(imageId, rotation);
+    }
 
-    m_settings->applyRotation(imageId, rotation);
+    const QDomElement trimEl(el.namedItem("trim").toElement());
+    if (!trimEl.isNull()) {
+      ImageTrim trim;
+      trim.enabled = (trimEl.attribute("enabled", "0") != "0");
+      trim.left = trimEl.attribute("left", "0").toInt();
+      trim.right = trimEl.attribute("right", "0").toInt();
+      trim.top = trimEl.attribute("top", "0").toInt();
+      trim.bottom = trimEl.attribute("bottom", "0").toInt();
+      m_settings->setTrim(imageId, trim);
+    }
   }
 
   loadImageSettings(reader, filterEl.namedItem("image-settings").toElement());
@@ -106,15 +119,26 @@ std::shared_ptr<CacheDrivenTask> Filter::createCacheDrivenTask(std::shared_ptr<p
 
 void Filter::writeParams(QDomDocument& doc, QDomElement& filterEl, const ImageId& imageId, int numericId) const {
   const OrthogonalRotation rotation(m_settings->getRotationFor(imageId));
-  if (rotation.toDegrees() == 0) {
+  const ImageTrim trim(m_settings->getTrim(imageId));
+
+  if ((rotation.toDegrees() == 0) && !trim.enabled) {
     return;
   }
 
-  XmlMarshaller marshaller(doc);
-
   QDomElement imageEl(doc.createElement("image"));
   imageEl.setAttribute("id", numericId);
-  imageEl.appendChild(rotation.toXml(doc, "rotation"));
+  if (rotation.toDegrees() != 0) {
+    imageEl.appendChild(rotation.toXml(doc, "rotation"));
+  }
+  if (trim.enabled) {
+    QDomElement trimEl(doc.createElement("trim"));
+    trimEl.setAttribute("enabled", "1");
+    trimEl.setAttribute("left", QString::number(trim.left));
+    trimEl.setAttribute("right", QString::number(trim.right));
+    trimEl.setAttribute("top", QString::number(trim.top));
+    trimEl.setAttribute("bottom", QString::number(trim.bottom));
+    imageEl.appendChild(trimEl);
+  }
   filterEl.appendChild(imageEl);
 }
 
