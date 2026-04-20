@@ -18,6 +18,11 @@ class QDomDocument;
 
 namespace page_split {
 /**
+ * GitHub #91 requests additional offcut/split guides (top/bottom, double spine, etc.).
+ * The current model supports at most two cutters for SINGLE_PAGE_CUT and one for
+ * TWO_PAGES. Extending that requires coordinated updates to serialization, this
+ * class, ImageView interaction, and downstream geometry consumers.
+ *
  * The page layout comprises the following:
  * \li A rectangular outline, possibly affine-transformed.
  * \li Layout type indicator.
