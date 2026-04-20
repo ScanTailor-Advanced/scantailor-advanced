@@ -956,7 +956,8 @@ void MainWindow::goPrevSelectedPage() {
 }
 
 void MainWindow::goToPage(const PageId& pageId, const ThumbnailSequence::SelectionAction selectionAction) {
-  focusButton->setChecked(true);
+  // Do not toggle Follow page here (issue #51): keyboard navigation used to force it on while mouse
+  // selection did not. Batch processing and similar flows set focus explicitly where needed.
 
   m_thumbSequence->setSelection(pageId, selectionAction);
 
