@@ -718,6 +718,16 @@ QToolButton:pressed {
        </layout>
       </item>
       <item>
+       <widget class="QCheckBox" name="freezeAggregateHardSizeCb">
+        <property name="toolTip">
+         <string>Keep the aggregate page size used for matching fixed while you switch pages, so the reference dimensions do not jump.</string>
+        </property>
+        <property name="text">
+         <string>Lock aggregate size for matching</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <layout class="QHBoxLayout" name="horizontalLayout_6">
         <item>
          <spacer name="horizontalSpacer_11">

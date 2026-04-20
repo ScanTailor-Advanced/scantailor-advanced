@@ -89,6 +89,8 @@ class OptionsWidget : public FilterOptionsWidget, public UnitsListener, private 
 
   void matchSizeToAllPages();
 
+  void freezeAggregateHardSizeToggled(bool checked);
+
   void onFixDpiClicked();
 
   void applyMargins(const std::set<PageId>& pages,
