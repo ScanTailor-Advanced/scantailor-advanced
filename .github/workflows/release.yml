@@ -81,7 +81,8 @@ jobs:
         run: |
           cd build-appimage
           export QMAKE=/usr/bin/qmake
-          ../linuxdeploy-x86_64.AppImage --appdir AppDir -e AppDir/usr/bin/scantailor --output appimage
+          # Bundle Qt platform plugins (e.g. xcb) via linuxdeploy-plugin-qt; same-dir discovery.
+          ../linuxdeploy-x86_64.AppImage --appdir AppDir --plugin qt -e AppDir/usr/bin/scantailor --output appimage
           OUT=$(ls -1 *.AppImage 2>/dev/null | head -1)
           mv "$OUT" "../scantailor-advanced-${{ github.ref_name }}-x86_64.AppImage"
 

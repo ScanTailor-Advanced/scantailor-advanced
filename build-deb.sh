@@ -58,13 +58,14 @@ Section: graphics
 Priority: optional
 Architecture: ${ARCH}
 Depends: ${DEPS}
-Maintainer: 4lex4 <4lex49@zoho.com>
+Maintainer: ScanTailor-Advanced <https://github.com/ScanTailor-Advanced/scantailor-advanced>
 Description: Interactive post-processing tool for scanned pages
  ScanTailor Advanced merges features from ScanTailor Featured and Enhanced,
  with improvements for page splitting, deskewing, content selection,
  margins, dewarping and output. Supports batch processing and multiple
  output formats.
 Homepage: https://github.com/ScanTailor-Advanced/scantailor-advanced
+Bugs: https://github.com/ScanTailor-Advanced/scantailor-advanced/issues
 EOF
 
 # Optional: refresh icon and desktop caches after install
