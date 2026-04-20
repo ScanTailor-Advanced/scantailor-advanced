@@ -87,6 +87,8 @@ Go to [this repository](https://github.com/ScanTailor-Advanced/scantailor-libs-b
 
 **Application ID:** the manifest uses `org.scantailor.Advanced` so it does **not** replace the legacy `com.github._4lex4.*` Flatpak. Author docs: [for app authors](https://docs.flathub.org/docs/for-app-authors/).
 
+**Community examples / test data:** See also [scantailor-testing](https://github.com/ImageProcessing-ElectronicPublications/scantailor-testing) (community repository; issue [#43](https://github.com/ScanTailor-Advanced/scantailor-advanced/issues/43)).
+
 ## About this fork
 
 Unfortunately, the [repository](https://github.com/4lex4/scantailor-advanced/releases) of @4lex4 seems to be no longer active.

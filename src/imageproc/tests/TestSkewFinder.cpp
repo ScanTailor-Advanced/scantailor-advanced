@@ -8,7 +8,6 @@
 #include <QColor>
 #include <QImage>
 #include <QPainter>
-#include <QString>
 #include <QTransform>
 #include <boost/test/unit_test.hpp>
 #include <cmath>
@@ -26,8 +25,11 @@ BOOST_AUTO_TEST_CASE(test_positive_detection) {
   QImage image(1000, 800, QImage::Format_ARGB32_Premultiplied);
   image.fill(0xffffffff);
   {
+    // Draw parallel strokes in "skewed page" space (no QTextDocument / fonts).
+    // Headless RPM/mock chroots often have no fonts; QPainter::drawText() can abort there.
     QPainter painter(&image);
-    painter.setPen(QColor(0, 0, 0));
+    painter.setRenderHint(QPainter::Antialiasing, false);
+    painter.setPen(QPen(QColor(0, 0, 0), 2));
     QTransform xform1;
     xform1.translate(-0.5 * image.width(), -0.5 * image.height());
     QTransform xform2;
@@ -35,17 +37,9 @@ BOOST_AUTO_TEST_CASE(test_positive_detection) {
     QTransform xform3;
     xform3.translate(0.5 * image.width(), 0.5 * image.height());
     painter.setWorldTransform(xform1 * xform2 * xform3);
-
-    QString text;
-    for (int line = 0; line < 40; ++line) {
-      for (int i = 0; i < 100; ++i) {
-        text += '1';
-      }
-      text += '\n';
+    for (int y = -500; y <= 500; y += 14) {
+      painter.drawLine(QLineF(-700, y, 700, y));
     }
-    QTextOption opt;
-    opt.setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    painter.drawText(image.rect(), text, opt);
   }
 
   SkewFinder skewFinder;
