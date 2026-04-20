@@ -24,6 +24,8 @@ class OutputFileNameGenerator {
 
   void performRelinking(const AbstractRelinker& relinker);
 
+  void setLayoutDirection(Qt::LayoutDirection dir) { m_layoutDirection = dir; }
+
   Qt::LayoutDirection layoutDirection() const { return m_layoutDirection; }
 
   const QString& outDir() const { return m_outDir; }

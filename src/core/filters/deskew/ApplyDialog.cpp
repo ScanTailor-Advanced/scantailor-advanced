@@ -33,25 +33,28 @@ ApplyDialog::ApplyDialog(QWidget* parent, const PageId& curPage, const PageSelec
 ApplyDialog::~ApplyDialog() = default;
 
 void ApplyDialog::onSubmit() {
+  const bool applyDeskew = applyDeskewCheckBox->isChecked();
+  const bool applyOblique = applyObliqueCheckBox->isChecked();
+
   std::set<PageId> pages;
   // thisPageRB is intentionally not handled.
   if (allPagesRB->isChecked()) {
     m_pages.selectAll().swap(pages);
-    emit appliedToAllPages(pages);
+    emit appliedToAllPages(pages, applyDeskew, applyOblique);
   } else if (thisPageAndFollowersRB->isChecked()) {
     m_pages.selectPagePlusFollowers(m_curPage).swap(pages);
-    emit appliedTo(pages);
+    emit appliedTo(pages, applyDeskew, applyOblique);
   } else if (selectedPagesRB->isChecked()) {
-    emit appliedTo(m_selectedPages);
+    emit appliedTo(m_selectedPages, applyDeskew, applyOblique);
   } else if (everyOtherRB->isChecked()) {
     m_pages.selectEveryOther(m_curPage).swap(pages);
-    emit appliedTo(pages);
+    emit appliedTo(pages, applyDeskew, applyOblique);
   } else if (thisEveryOtherRB->isChecked()) {
     m_pages.selectThisPageAndFollowingEveryOther(m_curPage).swap(pages);
-    emit appliedTo(pages);
+    emit appliedTo(pages, applyDeskew, applyOblique);
   } else if (everyOtherSelectedRB->isChecked()) {
     m_pages.selectEveryOtherInSubsetFromPage(m_curPage, m_selectedPages).swap(pages);
-    emit appliedTo(pages);
+    emit appliedTo(pages, applyDeskew, applyOblique);
   }
   accept();
 }  // ApplyDialog::onSubmit

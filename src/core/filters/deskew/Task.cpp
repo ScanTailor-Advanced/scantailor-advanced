@@ -102,8 +102,10 @@ FilterResultPtr Task::process(const TaskStatus& status, FilterData data) {
       uiData.setEffectiveDeskewAngle(params->deskewAngle());
       uiData.setEffectiveObliqueAngle(params->obliqueAngle());
       uiData.setMode(params->mode());
+      uiData.setObliqueMode(params->obliqueMode());
 
-      Params newParams(uiData.effectiveDeskewAngle(), uiData.effectiveObliqueAngle(), deps, uiData.mode());
+      Params newParams(uiData.effectiveDeskewAngle(), uiData.effectiveObliqueAngle(), deps, uiData.mode(),
+                       uiData.obliqueMode());
       m_settings->setPageParams(m_pageId, newParams);
     }
   }
@@ -142,6 +144,7 @@ FilterResultPtr Task::process(const TaskStatus& status, FilterData data) {
         uiData.setEffectiveDeskewAngle(0);
       }
       uiData.setMode(MODE_AUTO);
+      uiData.setObliqueMode(MODE_AUTO);
 
       // Find oblique on the deskewed (horizontal) mask for better accuracy (PR #110 feedback).
       BinaryImage horizontalMask;
@@ -174,7 +177,8 @@ FilterResultPtr Task::process(const TaskStatus& status, FilterData data) {
         uiData.setEffectiveObliqueAngle(-*obliqueDeg);
       }
 
-      Params newParams(uiData.effectiveDeskewAngle(), uiData.effectiveObliqueAngle(), deps, uiData.mode());
+      Params newParams(uiData.effectiveDeskewAngle(), uiData.effectiveObliqueAngle(), deps, uiData.mode(),
+                       uiData.obliqueMode());
       m_settings->setPageParams(m_pageId, newParams);
 
       status.throwIfCancelled();

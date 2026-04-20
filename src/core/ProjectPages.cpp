@@ -72,6 +72,14 @@ Qt::LayoutDirection ProjectPages::layoutDirection() const {
   }
 }
 
+void ProjectPages::setLayoutDirection(const Qt::LayoutDirection dir) {
+  {
+    QMutexLocker locker(&m_mutex);
+    initSubPagesInOrder(dir);
+  }
+  emit modified();
+}
+
 void ProjectPages::initSubPagesInOrder(const Qt::LayoutDirection layoutDirection) {
   if (layoutDirection == Qt::LeftToRight) {
     m_subPagesInOrder[0] = PageId::LEFT_PAGE;
