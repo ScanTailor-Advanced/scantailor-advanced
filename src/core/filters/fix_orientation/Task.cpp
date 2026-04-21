@@ -10,6 +10,7 @@
 #include "Dpm.h"
 #include "Filter.h"
 #include "FilterUiInterface.h"
+#include "ImageTrim.h"
 #include "ImageView.h"
 #include "OptionsWidget.h"
 #include "Settings.h"
@@ -65,6 +66,12 @@ FilterResultPtr Task::process(const TaskStatus& status, FilterData data) {
 
   ImageTransformation xform(data.xform());
   xform.setPreRotation(m_settings->getRotationFor(m_imageId));
+
+  const ImageTrim trim(m_settings->getTrim(m_imageId));
+  if (trim.enabled) {
+    const QRect inner(trim.toInnerRect(data.origImage().size()));
+    xform.setPreCropArea(xform.origRectToPreCropSpace(QRectF(inner)));
+  }
 
   if (m_nextTask) {
     return m_nextTask->process(status, FilterData(data, xform));

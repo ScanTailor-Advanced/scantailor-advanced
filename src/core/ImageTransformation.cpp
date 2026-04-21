@@ -3,6 +3,8 @@
 
 #include "ImageTransformation.h"
 
+#include <QPolygonF>
+
 #include <cmath>
 
 #ifndef M_PI
@@ -190,6 +192,11 @@ void ImageTransformation::resetPostCrop() {
 void ImageTransformation::resetPostScale() {
   m_postScaledDpi = Dpi();
   m_postScaleXform.reset();
+}
+
+QPolygonF ImageTransformation::origRectToPreCropSpace(const QRectF& rect) const {
+  const QTransform preScaleThenPreRotate(m_preScaleXform * m_preRotateXform);
+  return preScaleThenPreRotate.map(QPolygonF(rect));
 }
 
 void ImageTransformation::update() {

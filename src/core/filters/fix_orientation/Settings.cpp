@@ -17,6 +17,7 @@ Settings::~Settings() = default;
 void Settings::clear() {
   QMutexLocker locker(&m_mutex);
   m_perImageRotation.clear();
+  m_perImageTrim.clear();
 }
 
 void Settings::performRelinking(const AbstractRelinker& relinker) {
@@ -31,6 +32,15 @@ void Settings::performRelinking(const AbstractRelinker& relinker) {
   }
 
   m_perImageRotation.swap(newRotations);
+
+  PerImageTrim newTrims;
+  for (const PerImageTrim::value_type& kv : m_perImageTrim) {
+    const RelinkablePath oldPath(kv.first.filePath(), RelinkablePath::File);
+    ImageId newImageId(kv.first);
+    newImageId.setFilePath(relinker.substitutionPathFor(oldPath));
+    newTrims.insert(PerImageTrim::value_type(newImageId, kv.second));
+  }
+  m_perImageTrim.swap(newTrims);
 }
 
 void Settings::applyRotation(const ImageId& imageId, const OrthogonalRotation rotation) {
@@ -43,6 +53,19 @@ void Settings::applyRotation(const std::set<PageId>& pages, const OrthogonalRota
 
   for (const PageId& page : pages) {
     setImageRotationLocked(page.imageId(), rotation);
+  }
+}
+
+void Settings::applyTrim(const std::set<PageId>& pages, const ImageTrim& trim) {
+  QMutexLocker locker(&m_mutex);
+
+  for (const PageId& page : pages) {
+    const ImageId imageId(page.imageId());
+    if (!trim.enabled) {
+      m_perImageTrim.erase(imageId);
+    } else {
+      Utils::mapSetValue(m_perImageTrim, imageId, trim);
+    }
   }
 }
 
@@ -64,5 +87,28 @@ void Settings::setImageRotationLocked(const ImageId& imageId, const OrthogonalRo
 bool Settings::isRotationNull(const ImageId& imageId) const {
   QMutexLocker locker(&m_mutex);
   return (m_perImageRotation.find(imageId) == m_perImageRotation.end());
+}
+
+void Settings::setTrim(const ImageId& imageId, const ImageTrim& trim) {
+  QMutexLocker locker(&m_mutex);
+  if (!trim.enabled) {
+    m_perImageTrim.erase(imageId);
+    return;
+  }
+  Utils::mapSetValue(m_perImageTrim, imageId, trim);
+}
+
+ImageTrim Settings::getTrim(const ImageId& imageId) const {
+  QMutexLocker locker(&m_mutex);
+  const auto it(m_perImageTrim.find(imageId));
+  if (it != m_perImageTrim.end()) {
+    return it->second;
+  }
+  return ImageTrim();
+}
+
+void Settings::clearTrim(const ImageId& imageId) {
+  QMutexLocker locker(&m_mutex);
+  m_perImageTrim.erase(imageId);
 }
 }  // namespace fix_orientation
