@@ -60,6 +60,10 @@ class ColorCommonOptions {
 
   void setFillOffcut(bool fillOffcut);
 
+  bool fillOutsidePageBox() const;
+
+  void setFillOutsidePageBox(bool fillOutsidePageBox);
+
   bool fillMargins() const;
 
   void setFillMargins(bool val);
@@ -92,6 +96,7 @@ class ColorCommonOptions {
 
 
   bool m_fillOffcut;
+  bool m_fillOutsidePageBox;
   bool m_fillMargins;
   bool m_normalizeIllumination;
   double m_wienerCoef;
@@ -153,6 +158,14 @@ inline bool ColorCommonOptions::fillOffcut() const {
 
 inline void ColorCommonOptions::setFillOffcut(bool fillOffcut) {
   m_fillOffcut = fillOffcut;
+}
+
+inline bool ColorCommonOptions::fillOutsidePageBox() const {
+  return m_fillOutsidePageBox;
+}
+
+inline void ColorCommonOptions::setFillOutsidePageBox(bool fillOutsidePageBox) {
+  m_fillOutsidePageBox = fillOutsidePageBox;
 }
 
 inline bool ColorCommonOptions::PosterizationOptions::isEnabled() const {

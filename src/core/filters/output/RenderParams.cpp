@@ -53,7 +53,9 @@ RenderParams::RenderParams(const ColorParams& colorParams, const SplittingOption
   if (colorCommonOptions.fillMargins()) {
     m_mask |= FILL_MARGINS;
   }
-  if (colorCommonOptions.fillOffcut()) {
+  if (colorCommonOptions.fillOutsidePageBox()) {
+    m_mask |= FILL_OUTSIDE_PAGE_BOX;
+  } else if (colorCommonOptions.fillOffcut()) {
     m_mask |= FILL_OFFCUT;
   }
   if (colorCommonOptions.normalizeIllumination()) {
