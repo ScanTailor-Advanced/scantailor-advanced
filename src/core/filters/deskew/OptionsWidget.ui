@@ -110,6 +110,16 @@
        </layout>
       </item>
       <item>
+       <widget class="QCheckBox" name="autoObliqueCheckBox">
+        <property name="toolTip">
+         <string>When deskew mode is Auto, run automatic oblique (shear) correction. Disable for pages that only need rotation.</string>
+        </property>
+        <property name="text">
+         <string>Automatic oblique correction</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <layout class="QHBoxLayout">
         <item>
          <widget class="QLabel" name="obliqueLabel">

@@ -8,6 +8,7 @@
 
 #include <QMutex>
 #include <memory>
+#include <optional>
 #include <set>
 #include <unordered_map>
 
@@ -46,6 +47,10 @@ class Settings {
 
   bool algoContentBased() const;
 
+  void setPendingAutoOblique(const PageId& pageId, bool enabled);
+
+  std::optional<bool> takePendingAutoOblique(const PageId& pageId);
+
  private:
   using PerPageParams = std::unordered_map<PageId, Params>;
 
@@ -53,6 +58,7 @@ class Settings {
   PerPageParams m_perPageParams;
   DeviationProvider<PageId> m_deviationProvider;
   bool m_algoContentBased;
+  std::unordered_map<PageId, bool> m_pendingAutoOblique;
 };
 }  // namespace deskew
 #endif  // ifndef SCANTAILOR_DESKEW_SETTINGS_H_

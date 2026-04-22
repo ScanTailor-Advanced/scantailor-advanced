@@ -178,6 +178,7 @@ void DefaultParamsDialog::updateDeskewDisplay(const DefaultParams::DeskewParams&
   }
   angleSpinBox->setEnabled(mode == MODE_MANUAL);
   angleSpinBox->setValue(params.getDeskewAngleDeg());
+  deskewAutoObliqueCB->setChecked(params.isAutoOblique());
 }
 
 void DefaultParamsDialog::updateSelectContentDisplay(const DefaultParams::SelectContentParams& params) {
@@ -600,7 +601,8 @@ std::unique_ptr<DefaultParams> DefaultParamsDialog::buildParams() const {
   }
   DefaultParams::PageSplitParams pageSplitParams(layoutType);
 
-  DefaultParams::DeskewParams deskewParams(angleSpinBox->value(), deskewAutoBtn->isChecked() ? MODE_AUTO : MODE_MANUAL);
+  DefaultParams::DeskewParams deskewParams(angleSpinBox->value(), deskewAutoBtn->isChecked() ? MODE_AUTO : MODE_MANUAL,
+                                           deskewAutoObliqueCB->isChecked());
 
   const AutoManualMode pageBoxMode = pageDetectDisableBtn->isChecked()  ? MODE_DISABLED
                                      : pageDetectManualBtn->isChecked() ? MODE_MANUAL
