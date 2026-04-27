@@ -25,17 +25,25 @@ struct RotationParams {
   AutoManualMode mode = MODE_AUTO;
 };
 
-/** Oblique (shear) angle in degrees. */
+/** Oblique (shear) angle in degrees and its own auto/manual mode (issue #117). */
 struct ObliqueParams {
   double obliqueAngle = 0.0;
+  AutoManualMode mode = MODE_AUTO;
 };
 
 class Params {
  public:
   // Member-wise copying is OK.
 
-  Params(double deskewAngleDeg, const Dependencies& deps, AutoManualMode mode);
+  Params(double deskewAngleDeg, const Dependencies& deps, AutoManualMode deskewMode);
 
+  Params(double deskewAngleDeg,
+         double obliqueDeg,
+         const Dependencies& deps,
+         AutoManualMode deskewMode,
+         AutoManualMode obliqueMode);
+
+  /** Legacy: oblique mode matches \p mode (coupled deskew/oblique). */
   Params(double deskewAngleDeg, double obliqueDeg, const Dependencies& deps, AutoManualMode mode);
 
   explicit Params(const QDomElement& deskewEl);
@@ -49,6 +57,8 @@ class Params {
   const Dependencies& dependencies() const;
 
   AutoManualMode mode() const;
+
+  AutoManualMode obliqueMode() const;
 
   QDomElement toXml(QDomDocument& doc, const QString& name) const;
 
@@ -73,6 +83,10 @@ inline const Dependencies& Params::dependencies() const {
 
 inline AutoManualMode Params::mode() const {
   return m_rotation.mode;
+}
+
+inline AutoManualMode Params::obliqueMode() const {
+  return m_oblique.mode;
 }
 }  // namespace deskew
 
