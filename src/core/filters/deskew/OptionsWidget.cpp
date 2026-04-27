@@ -76,9 +76,7 @@ void OptionsWidget::appliedTo(const std::set<PageId>& pages, const bool applyDes
   }
 }
 
-void OptionsWidget::appliedToAllPages(const std::set<PageId>& pages,
-                                      const bool applyDeskew,
-                                      const bool applyOblique) {
+void OptionsWidget::appliedToAllPages(const std::set<PageId>& pages, const bool applyDeskew, const bool applyOblique) {
   if (pages.empty() || (!applyDeskew && !applyOblique)) {
     return;
   }
