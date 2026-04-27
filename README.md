@@ -87,6 +87,8 @@ Go to [this repository](https://github.com/ScanTailor-Advanced/scantailor-libs-b
 
 **Application ID:** the manifest uses `org.scantailor.Advanced` so it does **not** replace the legacy `com.github._4lex4.*` Flatpak. Author docs: [for app authors](https://docs.flathub.org/docs/for-app-authors/).
 
+**Linux – GitHub Releases (.deb / AppImage, [issue #64](https://github.com/ScanTailor-Advanced/scantailor-advanced/issues/64)):** Version tags matching `v*` run [`.github/workflows/release.yml`](.github/workflows/release.yml), which produces a `.deb` ([`build-deb.sh`](build-deb.sh)) and an AppImage attached to the GitHub Release when the workflow is enabled. Report problems with those binaries in [issue #64](https://github.com/ScanTailor-Advanced/scantailor-advanced/issues/64).
+
 **Community examples / test data:** See also [scantailor-testing](https://github.com/ImageProcessing-ElectronicPublications/scantailor-testing) (community repository; issue [#43](https://github.com/ScanTailor-Advanced/scantailor-advanced/issues/43)).
 
 ## About this fork
