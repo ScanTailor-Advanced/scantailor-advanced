@@ -14,6 +14,7 @@
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/sequenced_index.hpp>
 #include <boost/multi_index_container.hpp>
+#include <optional>
 #include <utility>
 
 #include "AbstractRelinker.h"
@@ -146,7 +147,13 @@ class Settings::Impl {
 
   QSizeF getAggregateHardSizeMMLocked() const;
 
+  QSizeF computeAggregateHardSizeMMLocked() const;
+
   QSizeF getAggregateHardSizeMM(const PageId& pageId, const QSizeF& hardSizeMm, const Alignment& alignment) const;
+
+  void setAggregateHardSizeFrozen(bool frozen);
+
+  bool isAggregateHardSizeFrozen() const;
 
   bool isPageAutoMarginsEnabled(const PageId& pageId);
 
@@ -199,6 +206,8 @@ class Settings::Impl {
   DeviationProvider<PageId> m_deviationProvider;
   std::vector<Guide> m_guides;
   bool m_showMiddleRect;
+
+  std::optional<QSizeF> m_frozenAggregateHardSizeMm;
 };
 
 
@@ -274,6 +283,14 @@ QSizeF Settings::getAggregateHardSizeMM(const PageId& pageId,
                                         const QSizeF& hardSizeMm,
                                         const Alignment& alignment) const {
   return m_impl->getAggregateHardSizeMM(pageId, hardSizeMm, alignment);
+}
+
+void Settings::setAggregateHardSizeFrozen(const bool frozen) {
+  m_impl->setAggregateHardSizeFrozen(frozen);
+}
+
+bool Settings::isAggregateHardSizeFrozen() const {
+  return m_impl->isAggregateHardSizeFrozen();
 }
 
 bool Settings::isPageAutoMarginsEnabled(const PageId& pageId) {
@@ -368,6 +385,7 @@ void Settings::Impl::clear() {
   const QMutexLocker locker(&m_mutex);
   m_items.clear();
   m_deviationProvider.clear();
+  m_frozenAggregateHardSizeMm.reset();
 }
 
 void Settings::Impl::performRelinking(const AbstractRelinker& relinker) {
@@ -586,7 +604,7 @@ QSizeF Settings::Impl::getAggregateHardSizeMM() const {
   return getAggregateHardSizeMMLocked();
 }
 
-QSizeF Settings::Impl::getAggregateHardSizeMMLocked() const {
+QSizeF Settings::Impl::computeAggregateHardSizeMMLocked() const {
   if (m_items.empty()) {
     return QSizeF(0.0, 0.0);
   }
@@ -599,14 +617,38 @@ QSizeF Settings::Impl::getAggregateHardSizeMMLocked() const {
   return QSizeF(width, height);
 }
 
+QSizeF Settings::Impl::getAggregateHardSizeMMLocked() const {
+  if (m_frozenAggregateHardSizeMm) {
+    return *m_frozenAggregateHardSizeMm;
+  }
+  return computeAggregateHardSizeMMLocked();
+}
+
+void Settings::Impl::setAggregateHardSizeFrozen(const bool frozen) {
+  const QMutexLocker locker(&m_mutex);
+  if (frozen) {
+    m_frozenAggregateHardSizeMm = computeAggregateHardSizeMMLocked();
+  } else {
+    m_frozenAggregateHardSizeMm.reset();
+  }
+}
+
+bool Settings::Impl::isAggregateHardSizeFrozen() const {
+  const QMutexLocker locker(&m_mutex);
+  return m_frozenAggregateHardSizeMm.has_value();
+}
+
 QSizeF Settings::Impl::getAggregateHardSizeMM(const PageId& pageId,
                                               const QSizeF& hardSizeMm,
                                               const Alignment& alignment) const {
-  if (alignment.isNull()) {
-    return getAggregateHardSizeMM();
+  const QMutexLocker locker(&m_mutex);
+  if (m_frozenAggregateHardSizeMm) {
+    return *m_frozenAggregateHardSizeMm;
   }
 
-  const QMutexLocker locker(&m_mutex);
+  if (alignment.isNull()) {
+    return computeAggregateHardSizeMMLocked();
+  }
 
   if (m_items.empty()) {
     return QSizeF(0.0, 0.0);

@@ -82,6 +82,7 @@ void OptionsWidget::preUpdateUI(const PageInfo& pageInfo, const Margins& margins
   }
 
   alignWithOthersCB->setChecked(!alignment.isNull());
+  freezeAggregateHardSizeCb->setChecked(m_settings->isAggregateHardSizeFrozen());
 
   if (alignment.horizontal() == Alignment::HAUTO) {
     hAlignmentModeCB->setCurrentIndex(0);
@@ -380,6 +381,11 @@ void OptionsWidget::matchSizeToAllPages() {
   emit aggregateHardSizeChanged();
 }
 
+void OptionsWidget::freezeAggregateHardSizeToggled(const bool checked) {
+  m_settings->setAggregateHardSizeFrozen(checked);
+  emit aggregateHardSizeChanged();
+}
+
 void OptionsWidget::updateMarginsDisplay() {
   auto block = m_connectionManager.getScopedBlock();
 
@@ -448,6 +454,7 @@ void OptionsWidget::setupUiConnections() {
   CONNECT(alignWithOthersCB, SIGNAL(toggled(bool)), this, SLOT(alignWithOthersToggled()));
   CONNECT(applyAlignmentBtn, SIGNAL(clicked()), this, SLOT(showApplyAlignmentDialog()));
   CONNECT(matchSizeToAllBtn, SIGNAL(clicked()), this, SLOT(matchSizeToAllPages()));
+  CONNECT(freezeAggregateHardSizeCb, SIGNAL(clicked(bool)), this, SLOT(freezeAggregateHardSizeToggled(bool)));
   for (const auto& kv : m_alignmentByButton) {
     CONNECT(kv.first, SIGNAL(clicked()), this, SLOT(alignmentButtonClicked()));
   }
