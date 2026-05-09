@@ -2,12 +2,12 @@
 <ui version="4.0">
  <class>fix_orientation::OptionsWidget</class>
  <widget class="QWidget" name="fix_orientation::OptionsWidget">
-  <property name="geometry">
+   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>197</width>
-    <height>201</height>
+    <width>220</width>
+    <height>340</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -163,6 +163,92 @@
          </spacer>
         </item>
        </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="CollapsibleGroupBox" name="trimGroupBox">
+     <property name="title">
+      <string>Crop scan (trim)</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <layout class="QVBoxLayout">
+      <item>
+       <widget class="QCheckBox" name="trimEnabledCheck">
+        <property name="text">
+         <string>Enable manual trim</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QGridLayout">
+        <item row="0" column="0">
+         <widget class="QLabel" name="labelTrimLeft">
+          <property name="text">
+           <string>Left</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QSpinBox" name="trimLeftSpin">
+          <property name="maximum">
+           <number>999999</number>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="labelTrimRight">
+          <property name="text">
+           <string>Right</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QSpinBox" name="trimRightSpin">
+          <property name="maximum">
+           <number>999999</number>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="labelTrimTop">
+          <property name="text">
+           <string>Top</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QSpinBox" name="trimTopSpin">
+          <property name="maximum">
+           <number>999999</number>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="labelTrimBottom">
+          <property name="text">
+           <string>Bottom</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QSpinBox" name="trimBottomSpin">
+          <property name="maximum">
+           <number>999999</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QPushButton" name="resetTrimBtn">
+        <property name="text">
+         <string>Reset trim</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

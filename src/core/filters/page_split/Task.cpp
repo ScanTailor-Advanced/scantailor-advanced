@@ -5,6 +5,8 @@
 
 #include <UnitsProvider.h>
 
+#include <QPainterPath>
+
 #include <utility>
 
 #include "DebugImagesImpl.h"
@@ -23,6 +25,22 @@
 
 namespace page_split {
 using imageproc::BinaryThreshold;
+
+static QPolygonF intersectPreCropWithPageOutline(const QPolygonF& pageOutlinePoly, const QPolygonF& incomingPreCrop) {
+  QPainterPath pathPage;
+  pathPage.addPolygon(pageOutlinePoly);
+  QPainterPath pathIncoming;
+  pathIncoming.addPolygon(incomingPreCrop);
+  const QPainterPath intersection = pathPage.intersected(pathIncoming);
+  if (intersection.isEmpty()) {
+    return pageOutlinePoly;
+  }
+  const QPolygonF clipped = intersection.toFillPolygon();
+  if (clipped.isEmpty()) {
+    return pageOutlinePoly;
+  }
+  return clipped;
+}
 
 class Task::UiUpdater : public FilterResult {
  public:
@@ -167,7 +185,9 @@ FilterResultPtr Task::process(const TaskStatus& status, const FilterData& data) 
 
   if (m_nextTask != nullptr) {
     ImageTransformation newXform(data.xform());
-    newXform.setPreCropArea(layout.pageOutline(m_pageInfo.id().subPage()).toPolygon());
+    const QPolygonF pagePoly(layout.pageOutline(m_pageInfo.id().subPage()).toPolygon());
+    const QPolygonF merged(intersectPreCropWithPageOutline(pagePoly, newXform.preCropArea()));
+    newXform.setPreCropArea(merged);
     return m_nextTask->process(status, FilterData(data, newXform));
   }
   return std::make_shared<UiUpdater>(m_filter, m_pages, std::move(m_dbg), data.origImage(), m_pageInfo, data.xform(),
