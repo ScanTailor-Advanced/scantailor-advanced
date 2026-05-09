@@ -11,6 +11,8 @@
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
+#include <QMouseEvent>
+#include <QRubberBand>
 #include <QStyleOptionGraphicsItem>
 #include <QtWidgets/QCheckBox>
 #include <QtWidgets/QMessageBox>
@@ -143,7 +145,12 @@ class ThumbnailSequence::Impl {
 
   void setSelectionModeEnabled(bool enabled);
 
- private:
+  void extendSelectionBySceneRect(const QRectF& sceneRect);
+
+  static bool isDescendantOfCompositeItem(QGraphicsItem* item);
+
+  class ViewportRubberBandFilter;
+
   class ItemsByIdTag;
   class ItemsInOrderTag;
   class SelectedThenUnselectedTag;
@@ -233,6 +240,26 @@ class ThumbnailSequence::Impl {
   GraphicsScene m_graphicsScene;
   QRectF m_sceneRect;
   bool m_selectionMode;
+
+  std::unique_ptr<ViewportRubberBandFilter> m_rubberBandFilter;
+};
+
+
+class ThumbnailSequence::Impl::ViewportRubberBandFilter : public QObject {
+ public:
+  explicit ViewportRubberBandFilter(Impl* impl, QGraphicsView* view);
+
+  ~ViewportRubberBandFilter() override;
+
+ protected:
+  bool eventFilter(QObject* watched, QEvent* event) override;
+
+ private:
+  Impl* m_impl;
+  QGraphicsView* m_view;
+  QRubberBand m_rubberBand;
+  QPoint m_origin;
+  bool m_active = false;
 };
 
 
@@ -283,14 +310,14 @@ class ThumbnailSequence::CompositeItem : public QGraphicsItemGroup {
 
   void updateAppearence(bool selected, bool selectionLeader);
 
-  virtual QRectF boundingRect() const;
+  QRectF boundingRect() const override;
 
-  virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
  protected:
-  virtual void contextMenuEvent(QGraphicsSceneContextMenuEvent* event);
+  void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
-  virtual void mousePressEvent(QGraphicsSceneMouseEvent* event);
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
 
  private:
   // We no longer use QGraphicsView's selection mechanism, so we
@@ -447,14 +474,18 @@ ThumbnailSequence::Impl::Impl(ThumbnailSequence& owner, const QSizeF& maxLogical
       [&](QGraphicsSceneContextMenuEvent* evt) { this->sceneContextMenuEvent(evt); });
 }
 
-ThumbnailSequence::Impl::~Impl() {}
+ThumbnailSequence::Impl::~Impl() {
+  m_rubberBandFilter.reset();
+}
 
 void ThumbnailSequence::Impl::setThumbnailFactory(std::shared_ptr<ThumbnailFactory> factory) {
   m_factory = std::move(factory);
 }
 
 void ThumbnailSequence::Impl::attachView(QGraphicsView* const view) {
+  m_rubberBandFilter.reset();
   view->setScene(&m_graphicsScene);
+  m_rubberBandFilter = std::make_unique<ViewportRubberBandFilter>(this, view);
 }
 
 void ThumbnailSequence::Impl::reset(const PageSequence& pages,
@@ -1225,6 +1256,57 @@ void ThumbnailSequence::Impl::clearSelection() {
   }
 }
 
+bool ThumbnailSequence::Impl::isDescendantOfCompositeItem(QGraphicsItem* item) {
+  for (; item; item = item->parentItem()) {
+    if (dynamic_cast<CompositeItem*>(item)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void ThumbnailSequence::Impl::extendSelectionBySceneRect(const QRectF& sceneRect) {
+  if (!sceneRect.isValid()) {
+    return;
+  }
+
+  const Item* firstHit = nullptr;
+
+  for (const Item& item : m_itemsInOrder) {
+    const QRectF br(item.composite->mapToScene(item.composite->boundingRect()).boundingRect());
+    if (!br.intersects(sceneRect)) {
+      continue;
+    }
+    if (!firstHit) {
+      firstHit = &item;
+    }
+    if (!item.isSelected()) {
+      item.setSelected(true);
+      moveToSelected(&item);
+    }
+  }
+
+  if (!firstHit) {
+    return;
+  }
+
+  const bool leaderStillValid = m_selectionLeader && m_selectionLeader->isSelected()
+                                && m_selectionLeader->composite
+                                       ->mapToScene(m_selectionLeader->composite->boundingRect())
+                                       .boundingRect()
+                                       .intersects(sceneRect);
+
+  if (!leaderStillValid) {
+    if (m_selectionLeader) {
+      m_selectionLeader->setSelectionLeader(false);
+    }
+    const_cast<Item*>(firstHit)->setSelectionLeader(true);
+    m_selectionLeader = firstHit;
+  }
+
+  m_owner.emitNewSelectionLeader(m_selectionLeader->pageInfo, m_selectionLeader->composite, SELECTED_BY_USER);
+}
+
 ThumbnailSequence::Impl::ItemsInOrder::iterator ThumbnailSequence::Impl::itemInsertPosition(
     const ItemsInOrder::iterator begin,
     const ItemsInOrder::iterator end,
@@ -1567,4 +1649,64 @@ void ThumbnailSequence::CompositeItem::mousePressEvent(QGraphicsSceneMouseEvent*
 void ThumbnailSequence::CompositeItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* const event) {
   event->accept();  // Prevent it from propagating further.
   m_owner.contextMenuRequested(m_item->pageInfo, event->screenPos(), m_item->isSelected());
+}
+
+ThumbnailSequence::Impl::ViewportRubberBandFilter::ViewportRubberBandFilter(Impl* impl, QGraphicsView* view)
+    : QObject(view->viewport()), m_impl(impl), m_view(view), m_rubberBand(QRubberBand::Rectangle, view->viewport()) {
+  view->viewport()->installEventFilter(this);
+}
+
+ThumbnailSequence::Impl::ViewportRubberBandFilter::~ViewportRubberBandFilter() {
+  if (m_view) {
+    m_view->viewport()->removeEventFilter(this);
+  }
+}
+
+bool ThumbnailSequence::Impl::ViewportRubberBandFilter::eventFilter(QObject* watched, QEvent* event) {
+  if (!m_view || watched != m_view->viewport()) {
+    return QObject::eventFilter(watched, event);
+  }
+
+  switch (event->type()) {
+    case QEvent::MouseButtonPress: {
+      auto* const me = static_cast<QMouseEvent*>(event);
+      if (me->button() != Qt::LeftButton || !(me->modifiers() & Qt::ControlModifier)) {
+        return false;
+      }
+      QGraphicsItem* const top = m_view->itemAt(me->pos());
+      if (Impl::isDescendantOfCompositeItem(top)) {
+        return false;
+      }
+      m_origin = me->pos();
+      m_active = true;
+      m_rubberBand.setGeometry(QRect(m_origin, QSize()));
+      m_rubberBand.show();
+      return true;
+    }
+    case QEvent::MouseMove: {
+      if (!m_active) {
+        return false;
+      }
+      auto* const me = static_cast<QMouseEvent*>(event);
+      m_rubberBand.setGeometry(QRect(m_origin, me->pos()).normalized());
+      return true;
+    }
+    case QEvent::MouseButtonRelease: {
+      auto* const me = static_cast<QMouseEvent*>(event);
+      if (!m_active || me->button() != Qt::LeftButton) {
+        return false;
+      }
+      m_active = false;
+      m_rubberBand.hide();
+      const QRect r(m_rubberBand.geometry().normalized());
+      if (r.width() > 3 && r.height() > 3) {
+        const QRectF sceneRect(m_view->mapToScene(r).boundingRect());
+        m_impl->extendSelectionBySceneRect(sceneRect);
+      }
+      return true;
+    }
+    default:
+      break;
+  }
+  return false;
 }
