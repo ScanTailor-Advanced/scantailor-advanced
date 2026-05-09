@@ -137,6 +137,52 @@
        </layout>
       </item>
       <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_oblique_mode">
+        <item>
+         <widget class="QLabel" name="obliqueModeLabel">
+          <property name="text">
+           <string>Oblique mode</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="obliqueAutoBtn">
+          <property name="text">
+           <string>Auto</string>
+          </property>
+          <property name="toolTip">
+           <string>Automatically estimate oblique (shear) correction.</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+          <property name="autoExclusive">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="obliqueManualBtn">
+          <property name="text">
+           <string>Manual</string>
+          </property>
+          <property name="toolTip">
+           <string>Keep the oblique angle set in the spin box.</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="autoExclusive">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
          <spacer name="horizontalSpacer_9">

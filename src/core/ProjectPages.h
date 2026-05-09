@@ -48,6 +48,11 @@ class ProjectPages : public QObject {
 
   Qt::LayoutDirection layoutDirection() const;
 
+  /**
+   * \brief Swap logical order of left/right sub-pages for two-page layouts (issue #62).
+   */
+  void setLayoutDirection(Qt::LayoutDirection dir);
+
   PageSequence toPageSequence(PageView view) const;
 
   void listRelinkablePaths(const VirtualFunction<void, const RelinkablePath&>& sink) const;

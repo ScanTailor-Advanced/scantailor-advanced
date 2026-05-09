@@ -93,6 +93,8 @@ FilterResultPtr Task::process(const TaskStatus& status, const FilterData& data) 
     QRectF contentRect(newParams.contentRect());
 
     if (needUpdatePageBox) {
+      const QRectF oldPageRect(pageRect);
+
       if (newParams.pageDetectionMode() == MODE_AUTO) {
         pageRect
             = PageFinder::findPageBox(status, data, newParams.isFineTuningEnabled(), m_settings->pageDetectionBox(),
@@ -105,8 +107,15 @@ FilterResultPtr Task::process(const TaskStatus& status, const FilterData& data) 
         pageRect = data.xform().resultingRect();
       }
 
-      // When offcut/page outline changes, preserve manual content box by clipping to new page rect (issue #90).
-      if (contentRect.isValid() && (contentRect.intersected(pageRect) != contentRect)) {
+      // When offcut/page outline changes, keep manual content aligned with page motion (issue #90).
+      if (newParams.contentDetectionMode() == MODE_MANUAL && contentRect.isValid() && oldPageRect.isValid()
+          && pageRect.isValid()) {
+        contentRect.translate(pageRect.center() - oldPageRect.center());
+        contentRect &= pageRect;
+        if (!contentRect.isValid()) {
+          needUpdateContentBox = true;
+        }
+      } else if (contentRect.isValid() && (contentRect.intersected(pageRect) != contentRect)) {
         if (newParams.contentDetectionMode() == MODE_MANUAL) {
           contentRect = contentRect.intersected(pageRect);
         } else {
@@ -122,6 +131,12 @@ FilterResultPtr Task::process(const TaskStatus& status, const FilterData& data) 
         contentRect = ContentBoxFinder::findContentBox(status, data, pageRect, m_dbg.get());
       } else if (newParams.contentDetectionMode() == MODE_DISABLED) {
         contentRect = pageRect;
+      } else if (newParams.contentDetectionMode() == MODE_MANUAL) {
+        if (contentRect.isValid() && pageRect.isValid()) {
+          contentRect &= pageRect;
+        } else {
+          contentRect = QRectF();
+        }
       }
 
       if (contentRect.isValid()) {

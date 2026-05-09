@@ -74,7 +74,7 @@ Go to [this repository](https://github.com/ScanTailor-Advanced/scantailor-libs-b
 
 **Windows – supported OS versions (issue #101):** Release builds follow upstream **Qt** and **toolchain** support policies; **legacy Windows** (for example Windows 7) is **not** exercised in this project’s CI and is **best-effort only**. You may need an **older tagged release** or a **self-built** binary against an older Qt/MSVC stack. Community reports (including compatibility tips) are welcome in the issue tracker.
 
-**Linux – Wayland (issue #97):** If you see rendering issues (blank or corrupted windows) when running under Wayland, try starting the application with `QT_QPA_PLATFORM=xcb` to use the X11 compatibility layer.
+**Linux – Wayland (issue #97):** On Qt5 builds, if `XDG_SESSION_TYPE` is `wayland` and `QT_QPA_PLATFORM` is not set, the application defaults to the X11 (`xcb`) platform plugin to avoid broken dialogs and painting. Set **`SCANTAILOR_NO_XCB_FALLBACK=1`** in the environment to keep native Wayland and, if needed, set `QT_QPA_PLATFORM=wayland` or `QT_QPA_PLATFORM=xcb` yourself.
 
 **Linux – Flatpak / Flathub ([issue #105](https://github.com/ScanTailor-Advanced/scantailor-advanced/issues/105)):**
 
