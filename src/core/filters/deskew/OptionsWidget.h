@@ -46,11 +46,16 @@ class OptionsWidget : public FilterOptionsWidget, private Ui::OptionsWidget {
 
     AutoManualMode mode() const;
 
+    void setAutoOblique(bool enabled);
+
+    bool autoOblique() const;
+
    private:
     double m_effDeskewAngle;
     double m_effObliqueAngle;
     Dependencies m_deps;
     AutoManualMode m_mode;
+    bool m_autoOblique;
   };
 
 
@@ -84,6 +89,8 @@ class OptionsWidget : public FilterOptionsWidget, private Ui::OptionsWidget {
   void modeChanged(bool autoMode);
 
   void topEdgeToggled(bool checked);
+
+  void autoObliqueToggled(bool checked);
 
   void showDeskewDialog();
 
@@ -148,6 +155,14 @@ inline void OptionsWidget::UiData::setMode(const AutoManualMode mode) {
 
 inline AutoManualMode OptionsWidget::UiData::mode() const {
   return m_mode;
+}
+
+inline void OptionsWidget::UiData::setAutoOblique(const bool enabled) {
+  m_autoOblique = enabled;
+}
+
+inline bool OptionsWidget::UiData::autoOblique() const {
+  return m_autoOblique;
 }
 }  // namespace deskew
 

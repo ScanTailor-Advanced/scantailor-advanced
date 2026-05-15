@@ -25,9 +25,10 @@ struct RotationParams {
   AutoManualMode mode = MODE_AUTO;
 };
 
-/** Oblique (shear) angle in degrees. */
+/** Oblique (shear) angle in degrees and whether to run automatic oblique detection. */
 struct ObliqueParams {
   double obliqueAngle = 0.0;
+  bool autoOblique = true;
 };
 
 class Params {
@@ -36,7 +37,7 @@ class Params {
 
   Params(double deskewAngleDeg, const Dependencies& deps, AutoManualMode mode);
 
-  Params(double deskewAngleDeg, double obliqueDeg, const Dependencies& deps, AutoManualMode mode);
+  Params(double deskewAngleDeg, double obliqueDeg, const Dependencies& deps, AutoManualMode mode, bool autoOblique);
 
   explicit Params(const QDomElement& deskewEl);
 
@@ -45,6 +46,8 @@ class Params {
   double deskewAngle() const;
 
   double obliqueAngle() const;
+
+  bool autoOblique() const;
 
   const Dependencies& dependencies() const;
 
@@ -65,6 +68,10 @@ inline double Params::deskewAngle() const {
 
 inline double Params::obliqueAngle() const {
   return m_oblique.obliqueAngle;
+}
+
+inline bool Params::autoOblique() const {
+  return m_oblique.autoOblique;
 }
 
 inline const Dependencies& Params::dependencies() const {

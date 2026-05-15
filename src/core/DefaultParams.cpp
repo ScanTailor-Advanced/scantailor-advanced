@@ -61,19 +61,23 @@ QDomElement DefaultParams::FixOrientationParams::toXml(QDomDocument& doc, const 
   return el;
 }
 
-DefaultParams::DeskewParams::DeskewParams(double deskewAngleDeg, AutoManualMode mode)
-    : m_deskewAngleDeg(deskewAngleDeg), m_mode(mode) {}
+DefaultParams::DeskewParams::DeskewParams(const double deskewAngleDeg,
+                                          const AutoManualMode mode,
+                                          const bool autoOblique)
+    : m_deskewAngleDeg(deskewAngleDeg), m_mode(mode), m_autoOblique(autoOblique) {}
 
-DefaultParams::DeskewParams::DeskewParams() : m_deskewAngleDeg(0.0), m_mode(MODE_AUTO) {}
+DefaultParams::DeskewParams::DeskewParams() : m_deskewAngleDeg(0.0), m_mode(MODE_AUTO), m_autoOblique(false) {}
 
 DefaultParams::DeskewParams::DeskewParams(const QDomElement& el)
     : m_deskewAngleDeg(el.attribute("deskewAngleDeg").toDouble()),
-      m_mode((el.attribute("mode") == "manual") ? MODE_MANUAL : MODE_AUTO) {}
+      m_mode((el.attribute("mode") == "manual") ? MODE_MANUAL : MODE_AUTO),
+      m_autoOblique(el.attribute("autoOblique", "1") != "0") {}
 
 QDomElement DefaultParams::DeskewParams::toXml(QDomDocument& doc, const QString& name) const {
   QDomElement el(doc.createElement(name));
   el.setAttribute("deskewAngleDeg", Utils::doubleToString(m_deskewAngleDeg));
   el.setAttribute("mode", (m_mode == MODE_AUTO) ? "auto" : "manual");
+  el.setAttribute("autoOblique", m_autoOblique ? "1" : "0");
   return el;
 }
 

@@ -761,6 +761,16 @@
                 </item>
                </layout>
               </item>
+              <item>
+               <widget class="QCheckBox" name="deskewAutoObliqueCB">
+                <property name="toolTip">
+                 <string>When deskew mode is Auto, run automatic oblique (shear) correction on new pages.</string>
+                </property>
+                <property name="text">
+                 <string>Automatic oblique correction</string>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
            </item>

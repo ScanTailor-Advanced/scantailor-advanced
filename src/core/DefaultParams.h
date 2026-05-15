@@ -45,7 +45,7 @@ class DefaultParams {
    public:
     DeskewParams();
 
-    explicit DeskewParams(double deskewAngleDeg, AutoManualMode mode);
+    explicit DeskewParams(double deskewAngleDeg, AutoManualMode mode, bool autoOblique = false);
 
     explicit DeskewParams(const QDomElement& el);
 
@@ -59,9 +59,14 @@ class DefaultParams {
 
     void setMode(AutoManualMode mode);
 
+    bool isAutoOblique() const;
+
+    void setAutoOblique(bool autoOblique);
+
    private:
     double m_deskewAngleDeg;
     AutoManualMode m_mode;
+    bool m_autoOblique;
   };
 
   class PageSplitParams {
@@ -331,6 +336,14 @@ inline AutoManualMode DefaultParams::DeskewParams::getMode() const {
 
 inline void DefaultParams::DeskewParams::setMode(AutoManualMode mode) {
   DeskewParams::m_mode = mode;
+}
+
+inline bool DefaultParams::DeskewParams::isAutoOblique() const {
+  return m_autoOblique;
+}
+
+inline void DefaultParams::DeskewParams::setAutoOblique(const bool autoOblique) {
+  DeskewParams::m_autoOblique = autoOblique;
 }
 
 inline page_split::LayoutType DefaultParams::PageSplitParams::getLayoutType() const {
