@@ -25,6 +25,9 @@ ImageView::~ImageView() = default;
 
 void ImageView::paintEvent(QPaintEvent* event) {
   ImageViewBase::paintEvent(event);
+  // Output guides (GitHub #82): viewport-centered cross only. Page layout margins
+  // use draggable mm guides in page_layout/ImageView.cpp; expanding Output to the
+  // same behaviour needs a product decision once reporters confirm desired scope.
   if (ApplicationSettings::getInstance().isOutputShowGuidesEnabled()) {
     QPainter painter(viewport());
     painter.save();
