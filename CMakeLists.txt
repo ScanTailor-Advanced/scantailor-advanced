@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
 
+set(target_name scantailor-advanced)
+
 # Disable in-source builds.
 if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
   message(FATAL_ERROR
@@ -284,7 +286,7 @@ option(PORTABLE_VERSION "Whether to build the portable version." ON)
 if (PORTABLE_VERSION)
   set(PORTABLE_CONFIG_DIR "config")
 endif()
-set(APPLICATION_NAME "scantailor-advanced")
+set(APPLICATION_NAME "${target_name}")
 if (WIN32)
   set(TRANSLATION_DIRS ".:translations")
   set(PLUGIN_DIRS ".")
@@ -331,14 +333,14 @@ set(SCANTAILOR_RESOURCES_DIR "${CMAKE_SOURCE_DIR}/src/resources")
 set(SCANTAILOR_TRANSLATIONS_DIR "${CMAKE_SOURCE_DIR}/src/translations")
 
 configure_file(
-    "${SCANTAILOR_RESOURCES_DIR}/unix/scantailor.desktop.in"
-    "${CMAKE_BINARY_DIR}/scantailor.desktop"
+    "${SCANTAILOR_RESOURCES_DIR}/unix/${target_name}.desktop.in"
+    "${CMAKE_BINARY_DIR}/${target_name}.desktop"
     @ONLY)
 
 add_subdirectory(src)
 
 # Translations
-file(GLOB translation_files "${SCANTAILOR_TRANSLATIONS_DIR}/scantailor_*.ts")
+file(GLOB translation_files "${SCANTAILOR_TRANSLATIONS_DIR}/${target_name}_*.ts")
 
 finalize_translations(scantailor ${translation_files})
 update_translations_target(update_translations scantailor)
@@ -459,11 +461,11 @@ if (WIN32)
 endif()
 
 if (UNIX)
-  install(FILES "${CMAKE_BINARY_DIR}/scantailor.desktop"
+  install(FILES "${CMAKE_BINARY_DIR}/${target_name}.desktop"
       DESTINATION "share/applications")
   install(FILES "${SCANTAILOR_RESOURCES_DIR}/appicon.svg"
       DESTINATION "share/icons/hicolor/scalable/apps"
-      RENAME "ScanTailor.svg")
+      RENAME "${target_name}.svg")
   install(FILES "${SCANTAILOR_RESOURCES_DIR}/unix/mime/scantailor-project.xml"
       DESTINATION "share/mime/packages")
 endif()
@@ -483,17 +485,17 @@ set(CPACK_PACKAGE_VENDOR "4lex4 <4lex49@zoho.com>")
 set(CPACK_PACKAGE_CONTACT "${CPACK_PACKAGE_VENDOR}")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Interactive post-processing tool for scanned pages.")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
-set(CPACK_PACKAGE_EXECUTABLES "scantailor;${CMAKE_PROJECT_NAME}")
-set(CPACK_CREATE_DESKTOP_LINKS "scantailor")
+set(CPACK_PACKAGE_EXECUTABLES "${target_name};${CMAKE_PROJECT_NAME}")
+set(CPACK_CREATE_DESKTOP_LINKS "${target_name}")
 if (WIN32)
-  set(CPACK_NSIS_INSTALLED_ICON_NAME "scantailor.exe")
+  set(CPACK_NSIS_INSTALLED_ICON_NAME "${target_name}.exe")
   set(CPACK_NSIS_PACKAGE_NAME "${CMAKE_PROJECT_NAME}")
   set(CPACK_NSIS_DISPLAY_NAME "${CMAKE_PROJECT_NAME} ${VERSION}")
   set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
   set(CPACK_NSIS_EXECUTABLES_DIRECTORY "${CMAKE_BINARY_DIR}")
   set(CPACK_PACKAGE_INSTALL_DIRECTORY "${CMAKE_PROJECT_NAME}")
   set(CPACK_NSIS_CREATE_ICONS_EXTRA
-      "CreateShortCut \\\"$DESKTOP\\\\${CMAKE_PROJECT_NAME}.lnk\\\" \\\"$INSTDIR\\\\scantailor.exe\\\"")
+      "CreateShortCut \\\"$DESKTOP\\\\${CMAKE_PROJECT_NAME}.lnk\\\" \\\"$INSTDIR\\\\${target_name}.exe\\\"")
   set(CPACK_NSIS_DELETE_ICONS_EXTRA
       "Delete \\\"$DESKTOP\\\\${CMAKE_PROJECT_NAME}.lnk\\\"")
 endif()

@@ -1,6 +1,8 @@
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
+set(target_name scantailor-advanced)
+
 set(resource_files
     resources.qrc
     dark_scheme/dark_scheme.qrc
@@ -68,26 +70,26 @@ if (WIN32)
 endif()
 
 add_executable(
-    scantailor WIN32 ${gui_only_sources} ${gui_only_ui_files}
+    ${target_name} WIN32 ${gui_only_sources} ${gui_only_ui_files}
     ${resource_files} ${win32_resource_file})
 target_link_libraries(
-    scantailor
+    ${target_name}
     PRIVATE core ${EXTRA_LIBS})
 target_include_directories(
-    scantailor
+    ${target_name}
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
     "$<TARGET_PROPERTY:TIFF::TIFF,INTERFACE_INCLUDE_DIRECTORIES>")
-install(TARGETS scantailor RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+install(TARGETS ${target_name} RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 
 if (Qt6_FOUND AND WIN32)
   #manage plugins with windeployqt.
   add_custom_command(
-    TARGET scantailor
+    TARGET ${target_name}
     POST_BUILD
-    COMMAND ${QT_BINDIR}/windeployqt  $<TARGET_FILE:scantailor>
+    COMMAND ${QT_BINDIR}/windeployqt  $<TARGET_FILE:${target_name}>
     COMMENT "deploy qt files alongside binary (e.g. plugins)"
   )
   install(CODE "execute_process(COMMAND \"${QT_BINDIR}/windeployqt\" \"\$\{CMAKE_INSTALL_PREFIX\}\")")
 endif()
 
-translation_sources(scantailor ${gui_only_sources} ${gui_only_ui_files})
+translation_sources(${target_name} ${gui_only_sources} ${gui_only_ui_files})

@@ -1,6 +1,6 @@
 #include <windows.h>
 
-IDI_ICON1 ICON  DISCARDABLE "@SCANTAILOR_WIN_DIR_NATIVE@\\scantailor.ico"
+IDI_ICON1 ICON  DISCARDABLE "@SCANTAILOR_WIN_DIR_NATIVE@\\scantailor-advanced.ico"
 
 VS_VERSION_INFO VERSIONINFO
 	FILEVERSION @APPLICATION_VERSION_MAJOR@,@APPLICATION_VERSION_MINOR@,@APPLICATION_VERSION_PATCH@,0
@@ -23,8 +23,8 @@ VS_VERSION_INFO VERSIONINFO
 				VALUE "FileDescription", "ScanTailor Advanced\0"
 				VALUE "FileVersion", "@VERSION@.0\0"
 				VALUE "LegalCopyright", "Copyright (C)  Joseph Artsimovich, 4lex4\0"
-				VALUE "OriginalFilename", "scantailor.exe\0"
-				VALUE "ProductName", "ScanTailor\0"
+				VALUE "OriginalFilename", "scantailor-advanced.exe\0"
+				VALUE "ProductName", "ScanTailor-Advanced\0"
 				VALUE "ProductVersion", "@VERSION@\0"
 			END
 		END
