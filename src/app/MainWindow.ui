@@ -75,6 +75,7 @@
     </widget>
     <addaction name="actionFixDpi"/>
     <addaction name="actionRelinking"/>
+    <addaction name="actionReverseTwoPageOrder"/>
     <addaction name="separator"/>
     <addaction name="actionDebug"/>
     <addaction name="separator"/>
@@ -714,6 +715,62 @@ QToolButton:pressed {
         </widget>
        </item>
        <item>
+        <widget class="QToolButton" name="pauseSortingBtn">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>22</width>
+           <height>22</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>22</width>
+           <height>22</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Pause automatic thumbnail reordering while thumbnails refresh.</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton:!hover {
+  padding: 0;
+  border: none;
+  background-color: transparent;
+}
+
+QToolButton:hover {
+  padding: 0;
+  border: 1px solid palette(highlight);
+  background-color: palette(base);
+}
+
+QToolButton:pressed {
+  padding: 0;
+  border: 1px solid palette(highlight);
+  background-color: palette(alternative-base);
+}</string>
+         </property>
+         <property name="text">
+          <string notr="true"/>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>16</width>
+           <height>16</height>
+          </size>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QToolButton" name="sortingOrderBtn">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -1206,6 +1263,20 @@ QToolButton:pressed {
   <action name="actionRelinking">
    <property name="text">
     <string>Relinking ...</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true"/>
+   </property>
+   <property name="autoRepeat">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionReverseTwoPageOrder">
+   <property name="text">
+    <string>Reverse two-page spread order</string>
+   </property>
+   <property name="toolTip">
+    <string>Swap left/right page order for two-page scans (e.g. Japanese book reading order).</string>
    </property>
    <property name="shortcut">
     <string notr="true"/>
