@@ -47,13 +47,13 @@ jobs:
       working-directory: "${{ github.workspace }}/build"
       run: |
         cpack -G "DEB"
-        mv scantailor*.deb scantailor.deb
+        mv scantailor*.deb scantailor-advanced.deb
       
     - name: Create RPM package
       working-directory: "${{ github.workspace }}/build"
       run: |
         cpack -G "RPM"
-        mv scantailor*.rpm scantailor.rpm
+        mv scantailor*.rpm scantailor-advanced.rpm
         
     - name: Create AppImage package
       working-directory: "${{ github.workspace }}/build"
@@ -62,32 +62,32 @@ jobs:
         chmod +x linuxdeploy-x86_64.AppImage
         ./linuxdeploy-x86_64.AppImage \
           --appdir AppDir \
-          --desktop-file "${{ github.workspace }}/build/scantailor.desktop" \
-          --icon-file "${{ github.workspace }}/src/resources/ScanTailor.png" \
-          --executable scantailor \
+          --desktop-file "${{ github.workspace }}/build/scantailor-advanced.desktop" \
+          --icon-file "${{ github.workspace }}/src/resources/scantailor-advanced.png" \
+          --executable scantailor-advanced \
           --output appimage
-        mv ScanTailor*.AppImage scantailor.AppImage
+        mv ScanTailor*.AppImage scantailor-advanced.AppImage
       
     - name: Upload Linux bin
       uses: actions/upload-artifact@v6
       with:
         name: scantailor-linux-ubuntu-latest-qt5
-        path: build/scantailor
+        path: build/scantailor-advanced
 
     - name: Upload Linux DEB
       uses: actions/upload-artifact@v6
       with:
         name: scantailor-linux-ubuntu-latest-qt5-deb
-        path: build/scantailor.deb
+        path: build/scantailor-advanced.deb
 
     - name: Upload Linux RPM
       uses: actions/upload-artifact@v6
       with:
         name: scantailor-linux-ubuntu-latest-qt5-rpm
-        path: build/scantailor.rpm
+        path: build/scantailor-advanced.rpm
 
     - name: Upload Linux AppImage
       uses: actions/upload-artifact@v6
       with:
         name: scantailor-linux-appimage
-        path: build/scantailor.AppImage
+        path: build/scantailor-advanced.AppImage
