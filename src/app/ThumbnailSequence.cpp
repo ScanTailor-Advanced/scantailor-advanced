@@ -1290,11 +1290,11 @@ void ThumbnailSequence::Impl::extendSelectionBySceneRect(const QRectF& sceneRect
     return;
   }
 
-  const bool leaderStillValid = m_selectionLeader && m_selectionLeader->isSelected()
-                                && m_selectionLeader->composite
-                                       ->mapToScene(m_selectionLeader->composite->boundingRect())
-                                       .boundingRect()
-                                       .intersects(sceneRect);
+  const bool leaderStillValid
+      = m_selectionLeader && m_selectionLeader->isSelected()
+        && m_selectionLeader->composite->mapToScene(m_selectionLeader->composite->boundingRect())
+               .boundingRect()
+               .intersects(sceneRect);
 
   if (!leaderStillValid) {
     if (m_selectionLeader) {
