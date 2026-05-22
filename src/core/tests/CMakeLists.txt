@@ -7,6 +7,7 @@ set(sources
     TestMargins.cpp
     TestPageId.cpp
     TestPageRange.cpp
+    TestPageSequence.cpp
     TestSelectContentApply.cpp
     TestSmartFilenameOrdering.cpp
     TestUnits.cpp)

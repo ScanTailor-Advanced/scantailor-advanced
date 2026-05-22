@@ -319,10 +319,6 @@ void OptionsWidget::applyMargins(const std::set<PageId>& pages,
 
   const bool autoMarginsEnabled = m_settings->isPageAutoMarginsEnabled(m_pageId);
   for (const PageId& pageId : pages) {
-    if (pageId == m_pageId) {
-      continue;
-    }
-
     m_settings->setPageAutoMarginsEnabled(pageId, autoMarginsEnabled);
     if (autoMarginsEnabled) {
       m_settings->invalidateContentSize(pageId);
