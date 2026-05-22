@@ -308,7 +308,6 @@ MainWindow::MainWindow()
   });
 
   connect(actionFixDpi, SIGNAL(triggered(bool)), SLOT(fixDpiDialogRequested()));
-  connect(actionReverseTwoPageOrder, SIGNAL(triggered(bool)), SLOT(toggleTwoPageSpreadReadingOrder()));
   connect(actionRelinking, SIGNAL(triggered(bool)), SLOT(showRelinkingDialog()));
 #ifdef ENABLE_DEBUG_FEATURES
   connect(actionDebug, SIGNAL(toggled(bool)), SLOT(debugToggled(bool)));
@@ -1053,18 +1052,6 @@ void MainWindow::pageContextMenuRequested(const PageInfo& pageInfo_, const QPoin
   }
 }  // MainWindow::pageContextMenuRequested
 
-void MainWindow::toggleTwoPageSpreadReadingOrder() {
-  if (!isProjectLoaded() || !m_pages) {
-    return;
-  }
-  const Qt::LayoutDirection nextDir
-      = (m_pages->layoutDirection() == Qt::LeftToRight) ? Qt::RightToLeft : Qt::LeftToRight;
-  m_pages->setLayoutDirection(nextDir);
-  m_outFileNameGen.setLayoutDirection(nextDir);
-  resetThumbSequence(currentPageOrderProvider(), ThumbnailSequence::KEEP_SELECTION);
-  invalidateAllThumbnails();
-}
-
 void MainWindow::pastLastPageContextMenuRequested(const QPoint& screenPos) {
   if (!isProjectLoaded()) {
     return;
@@ -1608,7 +1595,6 @@ void MainWindow::updateProjectActions() {
   actionSaveProjectAs->setEnabled(loaded);
   actionFixDpi->setEnabled(loaded);
   actionRelinking->setEnabled(loaded);
-  actionReverseTwoPageOrder->setEnabled(loaded);
 }
 
 bool MainWindow::isBatchProcessingInProgress() const {
