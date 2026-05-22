@@ -14,6 +14,7 @@
 #include <UnitsProvider.h>
 #include <UpscaleIntegerTimes.h>
 #include <core/ApplicationSettings.h>
+#include <core/DefaultParams.h>
 #include <core/DefaultParamsProvider.h>
 #include <imageproc/Grayscale.h>
 #include <imageproc/OrthogonalRotation.h>
