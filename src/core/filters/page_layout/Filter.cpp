@@ -26,7 +26,7 @@
 namespace page_layout {
 Filter::Filter(std::shared_ptr<ProjectPages> pages, const PageSelectionAccessor& pageSelectionAccessor)
     : m_pages(std::move(pages)), m_settings(std::make_shared<Settings>()), m_selectedPageOrder(0) {
-  m_optionsWidget.reset(new OptionsWidget(m_settings, pageSelectionAccessor));
+  m_optionsWidget.reset(new OptionsWidget(m_settings, m_pages, pageSelectionAccessor));
 
   const PageOrderOption::ProviderPtr defaultOrder;
   const auto orderByWidth = std::make_shared<OrderByWidthProvider>(m_settings);

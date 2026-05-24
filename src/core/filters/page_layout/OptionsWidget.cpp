@@ -3,26 +3,34 @@
 
 #include "OptionsWidget.h"
 
+#include <ColorSchemeManager.h>
 #include <UnitsProvider.h>
 #include <core/IconProvider.h>
 
+#include <QIntValidator>
+#include <QLineEdit>
 #include <QSettings>
 #include <utility>
 
 #include "../../Utils.h"
 #include "ApplyDialog.h"
 #include "ApplyMarginsDialog.h"
+#include "ProjectPages.h"
 #include "Settings.h"
 
 using namespace core;
 
 namespace page_layout {
-OptionsWidget::OptionsWidget(std::shared_ptr<Settings> settings, const PageSelectionAccessor& pageSelectionAccessor)
+OptionsWidget::OptionsWidget(std::shared_ptr<Settings> settings,
+                             std::shared_ptr<ProjectPages> pages,
+                             const PageSelectionAccessor& pageSelectionAccessor)
     : m_settings(std::move(settings)),
+      m_pages(std::move(pages)),
       m_pageSelectionAccessor(pageSelectionAccessor),
       m_leftRightLinked(true),
       m_topBottomLinked(true),
-      m_connectionManager(std::bind(&OptionsWidget::setupUiConnections, this)) {
+      m_connectionManager(std::bind(&OptionsWidget::setupUiConnections, this)),
+      m_sourceDpiFocusWidget(nullptr) {
   {
     QSettings appSettings;
     m_leftRightLinked = appSettings.value("margins/leftRightLinked", true).toBool();
@@ -31,6 +39,7 @@ OptionsWidget::OptionsWidget(std::shared_ptr<Settings> settings, const PageSelec
 
   setupUi(this);
   setupIcons();
+  setupSourceDpiControls();
 
   updateLinkDisplay(topBottomLink, m_topBottomLinked);
   updateLinkDisplay(leftRightLink, m_leftRightLinked);
@@ -57,10 +66,14 @@ OptionsWidget::OptionsWidget(std::shared_ptr<Settings> settings, const PageSelec
 OptionsWidget::~OptionsWidget() = default;
 
 void OptionsWidget::preUpdateUI(const PageInfo& pageInfo, const Margins& marginsMm, const Alignment& alignment) {
+  commitSourceDpiIfValid();
+  m_sourceDpiFocusWidget = isSourceDpiFieldFocused() ? focusWidget() : nullptr;
+
   auto block = m_connectionManager.getScopedBlock();
 
   m_pageId = pageInfo.id();
   m_dpi = pageInfo.metadata().dpi();
+  m_sourceImagePixelSize = pageInfo.metadata().size();
   m_marginsMM = marginsMm;
   m_alignment = alignment;
 
@@ -112,6 +125,7 @@ void OptionsWidget::preUpdateUI(const PageInfo& pageInfo, const Margins& margins
 
   marginsGroup->setEnabled(false);
   alignmentGroup->setEnabled(false);
+  keepSourceDpiFieldsEnabled();
 
   onUnitsChanged(UnitsProvider::getInstance().getUnits());
 }  // OptionsWidget::preUpdateUI
@@ -124,6 +138,12 @@ void OptionsWidget::postUpdateUI() {
 
   m_marginsMM = m_settings->getHardMarginsMM(m_pageId);
   updateMarginsDisplay();
+  updateSourceDpiDisplay();
+
+  if (m_sourceDpiFocusWidget) {
+    m_sourceDpiFocusWidget->setFocus(Qt::OtherFocusReason);
+    m_sourceDpiFocusWidget = nullptr;
+  }
 }
 
 void OptionsWidget::marginsSetExternally(const Margins& marginsMm) {
@@ -447,6 +467,9 @@ void OptionsWidget::setupUiConnections() {
   CONNECT(leftRightLink, SIGNAL(clicked()), this, SLOT(leftRightLinkClicked()));
   CONNECT(applyMarginsBtn, SIGNAL(clicked()), this, SLOT(showApplyMarginsDialog()));
   CONNECT(fixDpiBtn, SIGNAL(clicked()), this, SLOT(onFixDpiClicked()));
+  CONNECT(sourceDpiCombo, SIGNAL(activated(int)), this, SLOT(sourceDpiComboActivated(int)));
+  CONNECT(sourceXDpi, SIGNAL(editingFinished()), this, SLOT(sourceDpiEditingFinished()));
+  CONNECT(sourceYDpi, SIGNAL(editingFinished()), this, SLOT(sourceDpiEditingFinished()));
   CONNECT(alignWithOthersCB, SIGNAL(toggled(bool)), this, SLOT(alignWithOthersToggled()));
   CONNECT(applyAlignmentBtn, SIGNAL(clicked()), this, SLOT(showApplyAlignmentDialog()));
   CONNECT(matchSizeToAllBtn, SIGNAL(clicked()), this, SLOT(matchSizeToAllPages()));
@@ -539,6 +562,160 @@ void OptionsWidget::setupIcons() {
 }
 
 void OptionsWidget::onFixDpiClicked() {
-  emit fixDpiRequested();  // MainWindow opens FixDpiDialog (issue #93).
+  emit fixDpiRequested();
+}
+
+void OptionsWidget::setupSourceDpiControls() {
+  sourceDpiCombo->addItem(tr("Custom"), QVariant());
+  sourceDpiCombo->addItem(QStringLiteral("300 x 300"), QSize(300, 300));
+  sourceDpiCombo->addItem(QStringLiteral("400 x 400"), QSize(400, 400));
+  sourceDpiCombo->addItem(QStringLiteral("600 x 600"), QSize(600, 600));
+  sourceDpiCombo->addItem(QStringLiteral("1200 x 1200"), QSize(1200, 1200));
+
+  sourceXDpi->setMaxLength(4);
+  sourceYDpi->setMaxLength(4);
+  sourceXDpi->setValidator(new QIntValidator(sourceXDpi));
+  sourceYDpi->setValidator(new QIntValidator(sourceYDpi));
+
+  m_sourceDpiNormalPalette = sourceXDpi->palette();
+  m_sourceDpiErrorPalette = m_sourceDpiNormalPalette;
+  const QColor errorColor(ColorSchemeManager::instance().getColorParam("FixDpiDialogErrorText", QColor(Qt::red)));
+  m_sourceDpiErrorPalette.setColor(QPalette::Text, errorColor);
+}
+
+void OptionsWidget::updateSourceDpiDisplay() {
+  auto block = m_connectionManager.getScopedBlock();
+
+  if (m_dpi.isNull()) {
+    sourceXDpi->clear();
+    sourceYDpi->clear();
+  } else {
+    sourceXDpi->setText(QString::number(m_dpi.horizontal()));
+    sourceYDpi->setText(QString::number(m_dpi.vertical()));
+  }
+
+  updateSourceDpiComboFromFields();
+
+  const ImageMetadata metadata(m_sourceImagePixelSize, m_dpi);
+  decorateSourceDpiField(sourceXDpi, metadata.horizontalDpiStatus());
+  decorateSourceDpiField(sourceYDpi, metadata.verticalDpiStatus());
+}
+
+void OptionsWidget::commitSourceDpiIfValid() {
+  if (m_pageId.isNull() || !m_pages) {
+    return;
+  }
+
+  bool xOk = false;
+  bool yOk = false;
+  const int horizontalDpi = sourceXDpi->text().toInt(&xOk);
+  const int verticalDpi = sourceYDpi->text().toInt(&yOk);
+  if (!xOk || !yOk) {
+    return;
+  }
+
+  const Dpi dpi(horizontalDpi, verticalDpi);
+  if (dpi == m_dpi) {
+    return;
+  }
+
+  const ImageMetadata updated(m_sourceImagePixelSize, dpi);
+  if (!updated.isDpiOK()) {
+    return;
+  }
+
+  m_pages->updateImageMetadata(m_pageId.imageId(), updated);
+  m_dpi = dpi;
+  emit invalidateAllThumbnails();
+  emit reloadRequested();
+  updateMarginsDisplay();
+}
+
+void OptionsWidget::decorateSourceDpiField(QLineEdit* field, const ImageMetadata::DpiStatus dpiStatus) {
+  if (dpiStatus == ImageMetadata::DPI_OK) {
+    field->setPalette(m_sourceDpiNormalPalette);
+    field->setToolTip(QString());
+    return;
+  }
+
+  field->setPalette(m_sourceDpiErrorPalette);
+  switch (dpiStatus) {
+    case ImageMetadata::DPI_TOO_LARGE:
+      field->setToolTip(tr("DPI is too large and most likely wrong."));
+      break;
+    case ImageMetadata::DPI_TOO_SMALL:
+      field->setToolTip(
+          tr("DPI is too small. Even if it's correct, you are not going to get acceptable results with it."));
+      break;
+    case ImageMetadata::DPI_TOO_SMALL_FOR_THIS_PIXEL_SIZE:
+      field->setToolTip(
+          tr("An extremely low DPI value. That might correspond to a very large paper size for the pixel size in "
+             "question."));
+      break;
+    default:
+      field->setToolTip(QString());
+      break;
+  }
+}
+
+void OptionsWidget::updateSourceDpiComboFromFields() {
+  bool xOk = false;
+  bool yOk = false;
+  const QSize dpi(sourceXDpi->text().toInt(&xOk), sourceYDpi->text().toInt(&yOk));
+
+  if (xOk && yOk) {
+    const int count = sourceDpiCombo->count();
+    for (int i = 0; i < count; ++i) {
+      const QVariant data(sourceDpiCombo->itemData(i));
+      if (data.isValid() && (dpi == data.toSize())) {
+        sourceDpiCombo->setCurrentIndex(i);
+        return;
+      }
+    }
+  }
+
+  sourceDpiCombo->setCurrentIndex(0);
+}
+
+void OptionsWidget::keepSourceDpiFieldsEnabled() {
+  sourceDpiLabel->setEnabled(true);
+  sourceDpiCombo->setEnabled(true);
+  sourceDpiTimesLabel->setEnabled(true);
+  sourceXDpi->setEnabled(true);
+  sourceYDpi->setEnabled(true);
+  fixDpiBtn->setEnabled(true);
+}
+
+bool OptionsWidget::isSourceDpiFieldFocused() const {
+  const QWidget* const focused = focusWidget();
+  return (focused == sourceXDpi) || (focused == sourceYDpi) || (focused == sourceDpiCombo);
+}
+
+void OptionsWidget::sourceDpiComboActivated(const int index) {
+  const QVariant data(sourceDpiCombo->itemData(index));
+  if (!data.isValid()) {
+    return;
+  }
+
+  const QSize dpi(data.toSize());
+  sourceXDpi->setText(QString::number(dpi.width()));
+  sourceYDpi->setText(QString::number(dpi.height()));
+  sourceDpiEditingFinished();
+}
+
+void OptionsWidget::sourceDpiEditingFinished() {
+  updateSourceDpiComboFromFields();
+
+  bool xOk = false;
+  bool yOk = false;
+  const int horizontalDpi = sourceXDpi->text().toInt(&xOk);
+  const int verticalDpi = sourceYDpi->text().toInt(&yOk);
+  if (xOk && yOk) {
+    const ImageMetadata metadata(m_sourceImagePixelSize, Dpi(horizontalDpi, verticalDpi));
+    decorateSourceDpiField(sourceXDpi, metadata.horizontalDpiStatus());
+    decorateSourceDpiField(sourceYDpi, metadata.verticalDpiStatus());
+  }
+
+  commitSourceDpiIfValid();
 }
 }  // namespace page_layout

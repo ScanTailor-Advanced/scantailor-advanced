@@ -277,6 +277,47 @@ QToolButton:pressed {
        </layout>
       </item>
       <item>
+       <layout class="QHBoxLayout" name="sourceDpiLayout">
+        <item>
+         <widget class="QLabel" name="sourceDpiLabel">
+          <property name="text">
+           <string>Source DPI</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="sourceDpiCombo"/>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="sourceXDpi">
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>16777215</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="sourceDpiTimesLabel">
+          <property name="text">
+           <string notr="true">×</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="sourceYDpi">
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>16777215</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
        <layout class="QHBoxLayout" name="horizontalLayout_5">
         <item>
          <spacer name="horizontalSpacer_9">
@@ -301,7 +342,7 @@ QToolButton:pressed {
         <item>
          <widget class="QPushButton" name="fixDpiBtn">
           <property name="text">
-           <string>Fix DPI...</string>
+           <string>Fix all...</string>
           </property>
          </widget>
         </item>

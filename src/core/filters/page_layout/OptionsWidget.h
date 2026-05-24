@@ -8,13 +8,16 @@
 #include <core/ConnectionManager.h>
 
 #include <QIcon>
-#include <list>
+#include <QPalette>
+#include <QSize>
+#include <QWidget>
 #include <memory>
 #include <set>
 #include <unordered_map>
 
 #include "Alignment.h"
 #include "FilterOptionsWidget.h"
+#include "ImageMetadata.h"
 #include "Margins.h"
 #include "PageId.h"
 #include "PageSelectionAccessor.h"
@@ -22,6 +25,7 @@
 
 class QToolButton;
 class ProjectPages;
+class QLineEdit;
 
 namespace page_layout {
 class Settings;
@@ -29,7 +33,9 @@ class Settings;
 class OptionsWidget : public FilterOptionsWidget, public UnitsListener, private Ui::OptionsWidget {
   Q_OBJECT
  public:
-  OptionsWidget(std::shared_ptr<Settings> settings, const PageSelectionAccessor& pageSelectionAccessor);
+  OptionsWidget(std::shared_ptr<Settings> settings,
+                std::shared_ptr<ProjectPages> pages,
+                const PageSelectionAccessor& pageSelectionAccessor);
 
   ~OptionsWidget() override;
 
@@ -93,6 +99,10 @@ class OptionsWidget : public FilterOptionsWidget, public UnitsListener, private 
 
   void onFixDpiClicked();
 
+  void sourceDpiComboActivated(int index);
+
+  void sourceDpiEditingFinished();
+
   void applyMargins(const std::set<PageId>& pages,
                     bool applyLeft = true,
                     bool applyRight = true,
@@ -122,13 +132,32 @@ class OptionsWidget : public FilterOptionsWidget, public UnitsListener, private 
 
   void setupIcons();
 
+  void setupSourceDpiControls();
+
+  void updateSourceDpiDisplay();
+
+  void commitSourceDpiIfValid();
+
+  void decorateSourceDpiField(QLineEdit* field, ImageMetadata::DpiStatus dpiStatus);
+
+  void updateSourceDpiComboFromFields();
+
+  void keepSourceDpiFieldsEnabled();
+
+  bool isSourceDpiFieldFocused() const;
+
   std::shared_ptr<Settings> m_settings;
+  std::shared_ptr<ProjectPages> m_pages;
   PageSelectionAccessor m_pageSelectionAccessor;
   QIcon m_chainIcon;
   QIcon m_brokenChainIcon;
   AlignmentByButton m_alignmentByButton;
   PageId m_pageId;
   Dpi m_dpi;
+  QSize m_sourceImagePixelSize;
+  QPalette m_sourceDpiNormalPalette;
+  QPalette m_sourceDpiErrorPalette;
+  QWidget* m_sourceDpiFocusWidget;
   Margins m_marginsMM;
   Alignment m_alignment;
   bool m_leftRightLinked;
