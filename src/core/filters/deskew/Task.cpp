@@ -121,16 +121,14 @@ FilterResultPtr Task::process(const TaskStatus& status, FilterData data) {
     status.throwIfCancelled();
 
     bool autoObliqueEnabled = false;
-    if (priorParamsBeforeRecompute) {
-      autoObliqueEnabled = priorParamsBeforeRecompute->autoOblique();
-    } else if (const auto pending = m_settings->takePendingAutoOblique(m_pageId)) {
+    if (const auto pending = m_settings->takePendingAutoOblique(m_pageId)) {
       autoObliqueEnabled = *pending;
     } else {
       autoObliqueEnabled = DefaultParamsProvider::getInstance().getParams().getDeskewParams().isAutoOblique();
     }
 
     double preservedObliqueDeg = 0.;
-    if (priorParamsBeforeRecompute && !priorParamsBeforeRecompute->autoOblique()) {
+    if (priorParamsBeforeRecompute && priorParamsBeforeRecompute->obliqueMode() == MODE_MANUAL) {
       preservedObliqueDeg = priorParamsBeforeRecompute->obliqueAngle();
     }
 

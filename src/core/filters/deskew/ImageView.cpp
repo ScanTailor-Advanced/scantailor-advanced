@@ -249,9 +249,13 @@ void ImageView::dragFinished() {
  * Get the point at the center of the widget content area, in widget coordinates.
  */
 QPointF ImageView::getImageRotationOrigin() const {
+  const QRectF occupied(getOccupiedWidgetRect());
+  if (!occupied.isEmpty()) {
+    return occupied.center();
+  }
+
   const QRectF contentArea(getContentAreaRect());
-  return QPointF(std::floor(0.5 * contentArea.width()) + 0.5 + contentArea.x(),
-                 std::floor(0.5 * contentArea.height()) + 0.5 + contentArea.y());
+  return contentArea.center();
 }
 
 QRectF ImageView::getContentAreaRect() const {
@@ -285,7 +289,7 @@ QRectF ImageView::getRotationArcSquare() const {
   arcSize.setHeight(arcSize.width());
 
   QRectF arcSquare(QPointF(0, 0), arcSize);
-  arcSquare.moveCenter(reducedScreenRect.center());
+  arcSquare.moveCenter(getImageRotationOrigin());
   return arcSquare;
 }
 
@@ -303,6 +307,7 @@ std::pair<QPointF, QPointF> ImageView::getRotationHandles(const QRectF& arcSquar
 
 QRectF ImageView::getObliqueArcSquare() const {
   const QRectF reducedScreenRect(getContentAreaRect());
+  const QRectF occupied(getOccupiedWidgetRect());
 
   const double obliqueSin = std::sin(m_maxObliqueDeg * constants::DEG2RAD);
   QSizeF arcSize(obliqueSin, 1.0);
@@ -310,8 +315,9 @@ QRectF ImageView::getObliqueArcSquare() const {
   arcSize.setWidth(arcSize.height());
 
   QRectF arcSquare(QPointF(0, 0), arcSize);
-  arcSquare.moveRight(reducedScreenRect.right());
-  arcSquare.moveCenter(QPointF(arcSquare.center().x(), reducedScreenRect.center().y()));
+  const double rightEdge = occupied.isEmpty() ? reducedScreenRect.right() : occupied.right();
+  arcSquare.moveRight(rightEdge);
+  arcSquare.moveCenter(QPointF(arcSquare.center().x(), getImageRotationOrigin().y()));
   return arcSquare;
 }
 
