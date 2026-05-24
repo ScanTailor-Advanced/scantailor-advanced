@@ -9,7 +9,16 @@ namespace fix_orientation {
 
 namespace {
 
-const int kMinInnerSide = 32;
+void redistributeExcess(int& leading, int& trailing, const int excess) {
+  if (excess <= 0) {
+    return;
+  }
+  const int fromLeading = std::min(leading, (excess + 1) / 2);
+  leading -= fromLeading;
+  trailing -= (excess - fromLeading);
+  leading = std::max(0, leading);
+  trailing = std::max(0, trailing);
+}
 
 }  // namespace
 
@@ -23,10 +32,15 @@ QRect ImageTrim::toInnerRect(const QSize& imageSize) const {
   int r = std::max(0, right);
   int b = std::max(0, bottom);
 
-  int w = imageSize.width() - l - r;
-  int h = imageSize.height() - t - b;
-  w = std::max(kMinInnerSide, w);
-  h = std::max(kMinInnerSide, h);
+  if (l + r + kMinTrimInnerSide > imageSize.width()) {
+    redistributeExcess(l, r, l + r + kMinTrimInnerSide - imageSize.width());
+  }
+  if (t + b + kMinTrimInnerSide > imageSize.height()) {
+    redistributeExcess(t, b, t + b + kMinTrimInnerSide - imageSize.height());
+  }
+
+  int w = std::max(kMinTrimInnerSide, imageSize.width() - l - r);
+  int h = std::max(kMinTrimInnerSide, imageSize.height() - t - b);
 
   if (l + w > imageSize.width()) {
     l = std::max(0, imageSize.width() - w);

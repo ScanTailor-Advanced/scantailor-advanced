@@ -8,6 +8,8 @@
 
 namespace fix_orientation {
 
+inline constexpr int kMinTrimInnerSide = 32;
+
 /**
  * Inward crop from each edge of the source image, in integer source pixels.
  * When disabled, other fields are ignored.

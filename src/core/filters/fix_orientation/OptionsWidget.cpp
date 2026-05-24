@@ -17,11 +17,6 @@
 #include "Settings.h"
 
 namespace fix_orientation {
-namespace {
-
-const int kMinInnerSide = 32;
-
-}  // namespace
 
 OptionsWidget::OptionsWidget(std::shared_ptr<Settings> settings, const PageSelectionAccessor& pageSelectionAccessor)
     : m_settings(std::move(settings)),
@@ -119,6 +114,11 @@ void OptionsWidget::trimEnableToggled(const bool checked) {
   trimRightSpin->setEnabled(checked);
   trimTopSpin->setEnabled(checked);
   trimBottomSpin->setEnabled(checked);
+  labelTrimTopLeft->setEnabled(checked);
+  labelTrimTopRight->setEnabled(checked);
+  labelTrimCenter->setEnabled(checked);
+  labelTrimBottomLeft->setEnabled(checked);
+  labelTrimBottomRight->setEnabled(checked);
   resetTrimBtn->setEnabled(checked);
   if (!checked) {
     m_settings->clearTrim(m_pageId.imageId());
@@ -132,6 +132,7 @@ void OptionsWidget::trimMarginsChanged(const int) {
   if (!trimEnabledCheck->isChecked()) {
     return;
   }
+  updateTrimMaximums();
   pushTrimFromControls();
 }
 
@@ -152,11 +153,13 @@ void OptionsWidget::resetTrim() {
 void OptionsWidget::updateTrimMaximums() {
   const int w = m_imagePixelSize.width();
   const int h = m_imagePixelSize.height();
-  const int maxSide = std::max(0, std::max(w, h) - kMinInnerSide);
-  trimLeftSpin->setMaximum(maxSide);
-  trimRightSpin->setMaximum(maxSide);
-  trimTopSpin->setMaximum(maxSide);
-  trimBottomSpin->setMaximum(maxSide);
+  const int maxHorizontal = std::max(0, w - kMinTrimInnerSide);
+  const int maxVertical = std::max(0, h - kMinTrimInnerSide);
+
+  trimLeftSpin->setMaximum(std::max(0, maxHorizontal - trimRightSpin->value()));
+  trimRightSpin->setMaximum(std::max(0, maxHorizontal - trimLeftSpin->value()));
+  trimTopSpin->setMaximum(std::max(0, maxVertical - trimBottomSpin->value()));
+  trimBottomSpin->setMaximum(std::max(0, maxVertical - trimTopSpin->value()));
 }
 
 void OptionsWidget::pullTrimToControls() {
@@ -170,6 +173,11 @@ void OptionsWidget::pullTrimToControls() {
   trimRightSpin->setEnabled(trim.enabled);
   trimTopSpin->setEnabled(trim.enabled);
   trimBottomSpin->setEnabled(trim.enabled);
+  labelTrimTopLeft->setEnabled(trim.enabled);
+  labelTrimTopRight->setEnabled(trim.enabled);
+  labelTrimCenter->setEnabled(trim.enabled);
+  labelTrimBottomLeft->setEnabled(trim.enabled);
+  labelTrimBottomRight->setEnabled(trim.enabled);
   resetTrimBtn->setEnabled(trim.enabled);
 }
 
