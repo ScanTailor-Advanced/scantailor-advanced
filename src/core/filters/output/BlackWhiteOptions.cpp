@@ -80,10 +80,6 @@ BinarizationMethod BlackWhiteOptions::parseBinarizationMethod(const QString& str
     return T_BRADLEY;
   } else if (str == "grad") {
     return T_GRAD;
-  } else if (str == "edgeplus") {
-    return T_EDGEPLUS;
-  } else if (str == "blurdiv") {
-    return T_BLURDIV;
   } else if (str == "edgediv") {
     return T_EDGEDIV;
   } else {
@@ -114,12 +110,6 @@ QString BlackWhiteOptions::formatBinarizationMethod(BinarizationMethod type) {
       break;
     case T_GRAD:
       str = "grad";
-      break;
-    case T_EDGEPLUS:
-      str = "edgeplus";
-      break;
-    case T_BLURDIV:
-      str = "blurdiv";
       break;
     case T_EDGEDIV:
       str = "edgediv";

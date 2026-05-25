@@ -50,8 +50,6 @@ DefaultParamsDialog::DefaultParamsDialog(QWidget* parent)
   thresholdMethodBox->addItem(tr("Wolf"), T_WOLF);
   thresholdMethodBox->addItem(tr("Bradley"), T_BRADLEY);
   thresholdMethodBox->addItem(tr("Grad"), T_GRAD);
-  thresholdMethodBox->addItem(tr("EdgePlus"), T_EDGEPLUS);
-  thresholdMethodBox->addItem(tr("BlurDiv"), T_BLURDIV);
   thresholdMethodBox->addItem(tr("EdgeDiv"), T_EDGEDIV);
 
   pictureShapeSelector->addItem(tr("Off"), OFF_SHAPE);
@@ -670,8 +668,7 @@ std::unique_ptr<DefaultParams> DefaultParamsDialog::buildParams() const {
   blackWhiteOptions.setBinarizationMethod(binarizationMethod);
   blackWhiteOptions.setThresholdAdjustment(thresholdSlider->value());
   blackWhiteOptions.setSauvolaCoef(sauvolaCoef->value());
-  if (binarizationMethod == T_SAUVOLA || binarizationMethod == T_BRADLEY || binarizationMethod == T_EDGEPLUS
-      || binarizationMethod == T_BLURDIV || binarizationMethod == T_EDGEDIV) {
+  if (binarizationMethod == T_SAUVOLA || binarizationMethod == T_BRADLEY || binarizationMethod == T_EDGEDIV) {
     blackWhiteOptions.setWindowSize(sauvolaWindowSize->value());
   } else if (binarizationMethod == T_WOLF || binarizationMethod == T_GRAD) {
     blackWhiteOptions.setWindowSize(wolfWindowSize->value());

@@ -17,8 +17,6 @@ enum BinarizationMethod {
   T_WINDOW,
   T_BRADLEY,
   T_GRAD,
-  T_EDGEPLUS,
-  T_BLURDIV,
   T_EDGEDIV
 };
 

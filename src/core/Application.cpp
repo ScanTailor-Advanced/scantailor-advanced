@@ -65,7 +65,7 @@ void Application::initTranslations() {
 #endif
   const QStringList translationDirs(QString::fromUtf8(TRANSLATION_DIRS).split(QChar(':'), opt));
 
-  const QStringList languageFileFilter("scantailor_*.qm");
+  const QStringList languageFileFilter("scantailor-advanced_*.qm");
   for (const QString& path : translationDirs) {
     QDir dir = (QDir::isAbsolutePath(path)) ? QDir(path) : QDir::cleanPath(applicationDirPath() + '/' + path);
     if (dir.exists()) {

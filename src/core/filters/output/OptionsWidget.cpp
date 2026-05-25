@@ -46,8 +46,6 @@ OptionsWidget::OptionsWidget(std::shared_ptr<Settings> settings, const PageSelec
   thresholdMethodBox->addItem(tr("Window"), T_WINDOW);
   thresholdMethodBox->addItem(tr("Bradley"), T_BRADLEY);
   thresholdMethodBox->addItem(tr("Grad"), T_GRAD);
-  thresholdMethodBox->addItem(tr("EdgePlus"), T_EDGEPLUS);
-  thresholdMethodBox->addItem(tr("BlurDiv"), T_BLURDIV);
   thresholdMethodBox->addItem(tr("EdgeDiv"), T_EDGEDIV);
 
   fillingColorBox->addItem(tr("Background"), FILL_BACKGROUND);
@@ -63,10 +61,6 @@ OptionsWidget::OptionsWidget(std::shared_ptr<Settings> settings, const PageSelec
   QPointer<OptionsWidgetBinarization> bradleyOptionsWidgetBinarization
       = new OptionsWidgetBinarizationSauvola(m_settings);
   QPointer<OptionsWidgetBinarization> gradOptionsWidgetBinarization = new OptionsWidgetBinarizationWolf(m_settings);
-  QPointer<OptionsWidgetBinarization> edgeplusOptionsWidgetBinarization
-      = new OptionsWidgetBinarizationSauvola(m_settings);
-  QPointer<OptionsWidgetBinarization> blurdivOptionsWidgetBinarization
-      = new OptionsWidgetBinarizationSauvola(m_settings);
   QPointer<OptionsWidgetBinarization> edgedivOptionsWidgetBinarization
       = new OptionsWidgetBinarizationSauvola(m_settings);
 
@@ -80,8 +74,6 @@ OptionsWidget::OptionsWidget(std::shared_ptr<Settings> settings, const PageSelec
   addOptionsWidgetBinarization(windowOptionsWidgetBinarization);
   addOptionsWidgetBinarization(bradleyOptionsWidgetBinarization);
   addOptionsWidgetBinarization(gradOptionsWidgetBinarization);
-  addOptionsWidgetBinarization(edgeplusOptionsWidgetBinarization);
-  addOptionsWidgetBinarization(blurdivOptionsWidgetBinarization);
   addOptionsWidgetBinarization(edgedivOptionsWidgetBinarization);
   updateBinarizationOptionsDisplay(binarizationOptions->currentIndex());
 

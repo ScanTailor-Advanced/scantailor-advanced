@@ -2374,22 +2374,6 @@ BinaryImage OutputGenerator::Processor::binarize(const QImage& image) const {
       binarized = binarizeGrad(image, windowsSize, lowerBound, upperBound, thresholdCoef, thresholdDelta);
       break;
     }
-    case T_EDGEPLUS: {
-      const double thresholdDelta = blackWhiteOptions.thresholdAdjustment();
-      const QSize windowsSize = QSize(blackWhiteOptions.getWindowSize(), blackWhiteOptions.getWindowSize());
-      const double thresholdCoef = blackWhiteOptions.getSauvolaCoef();
-
-      binarized = binarizeEdgeDiv(image, windowsSize, thresholdCoef, 0.0, thresholdDelta);
-      break;
-    }
-    case T_BLURDIV: {
-      const double thresholdDelta = blackWhiteOptions.thresholdAdjustment();
-      const QSize windowsSize = QSize(blackWhiteOptions.getWindowSize(), blackWhiteOptions.getWindowSize());
-      const double thresholdCoef = blackWhiteOptions.getSauvolaCoef();
-
-      binarized = binarizeEdgeDiv(image, windowsSize, 0.0, thresholdCoef, thresholdDelta);
-      break;
-    }
     case T_EDGEDIV: {
       const double thresholdDelta = blackWhiteOptions.thresholdAdjustment();
       const QSize windowsSize = QSize(blackWhiteOptions.getWindowSize(), blackWhiteOptions.getWindowSize());
