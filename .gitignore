@@ -6,6 +6,8 @@ out/
 bin/
 lib/
 *.dir/
+*.dmg
+*.ipa
 
 # CMake (generated). Tracked helper modules live under cmake/.
 CMakeCache.txt

@@ -9,6 +9,7 @@
 #include <QActionGroup>
 #include <QDir>
 #include <QFileDialog>
+#include <QStandardPaths>
 #include <QFileSystemModel>
 #include <QMenu>
 #include <QMessageBox>
@@ -1334,7 +1335,9 @@ void MainWindow::filterResult(const BackgroundTaskPtr& task, const FilterResultP
         if (cmd.isEmpty()) {
           QApplication::beep();
         } else {
+#if !defined(Q_OS_IOS)
           Q_UNUSED(std::system(cmd.toStdString().c_str()));
+#endif
         }
       }
 
@@ -1425,7 +1428,13 @@ void MainWindow::saveProjectAsTriggered() {
   }
 
   QString projectFile(
-      QFileDialog::getSaveFileName(this, QString(), projectDir, tr("Scan Tailor Projects") + " (*.ScanTailor)"));
+      QFileDialog::getSaveFileName(this, QString(), projectDir, tr("Scan Tailor Projects") + " (*.ScanTailor)",
+#if defined(Q_OS_IOS)
+        nullptr, QFileDialog::DontUseNativeDialog
+#else
+        nullptr
+#endif
+      ));
   if (projectFile.isEmpty()) {
     return;
   }
@@ -1468,9 +1477,18 @@ void MainWindow::openProject() {
     return;
   }
 
+#if defined(Q_OS_IOS)
+  const QString projectDir(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation));
+#else
   const QString projectDir(QSettings().value("project/lastDir").toString());
-  const QString projectFile(QFileDialog::getOpenFileName(this, tr("Open Project"), projectDir,
-                                                         tr("Scan Tailor Projects") + " (*.ScanTailor)"));
+#endif
+  const QString projectFile(QFileDialog::getOpenFileName(
+    this, tr("Open Project"), projectDir,
+    tr("Scan Tailor Projects") + " (*.ScanTailor)"
+#if defined(Q_OS_IOS)
+    , nullptr, QFileDialog::DontUseNativeDialog
+#endif
+    ));
   if (projectFile.isEmpty()) {
     // Cancelled by user.
     return;

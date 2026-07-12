@@ -10,6 +10,11 @@ If the video doesn't play, you may to have to login into your vimeo account.
 ## Contents:
 * [Description](#description)
 * [Building](#building)
+  * [Linux (Ubuntu / Debian)](#building-on-linux-ubuntu--debian)
+  * [macOS](#building-on-macos)
+  * [iOS](#building-for-ios)
+  * [Windows (cross-compile from Linux)](#building-a-windows-exe-from-linux-cross-compile)
+  * [Windows (native)](#building-on-windows-native)
 * [About this fork](#about-this-fork)
 * [Features](#features)
   * [**ScanTailor Enhanced**](#scantailor-enhanced)
@@ -496,3 +501,129 @@ This produces `build-win-static/scantailor.exe`. Use `./build-windows.sh shared`
 #### Building on Windows (native)
 
 Go to [this repository](https://github.com/4lex4/scantailor-libs-build) and follow the instructions given there.
+
+#### Building on macOS
+
+ScanTailor Advanced builds as a native macOS app (`ScanTailor Advanced.app`) using Qt6 and CMake. The build script handles configuration, compilation, Qt framework bundling, ad-hoc code signing, and DMG creation automatically.
+
+**Requirements:**
+
+- macOS 12 or later (Apple Silicon or Intel)
+- Xcode Command Line Tools
+- Homebrew
+- Qt 6.x for macOS (installed via `aqt` to `~/Qt/`)
+
+**Install Xcode Command Line Tools and Homebrew:**
+
+```bash
+xcode-select --install
+
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+**Install Homebrew dependencies:**
+
+```bash
+brew install cmake jpeg libpng libtiff boost
+
+# Optionally install create-dmg for a nicer DMG layout
+brew install create-dmg
+```
+
+**Install Qt 6 for macOS using aqt:**
+
+[`aqt`](https://github.com/miurahr/aqtinstall) (Another Qt installer) installs Qt without requiring a Qt account and places it at `~/Qt/`, which the build script locates automatically.
+
+```bash
+pip install aqtinstall
+
+# Install Qt 6.12.0 for macOS (replace 6.12.0 with your preferred version)
+aqt install-qt mac desktop 6.12.0 clang_64 \
+  --outputdir ~/Qt \
+  --modules qtsvg qtimageformats qtopengl qtnetwork qtxml
+```
+
+The build script will find Qt automatically under `~/Qt/`. If you install to a different location, set `QT_MACOS_DIR` as shown in the notes below.
+
+**Build:**
+
+```bash
+git clone https://github.com/ScanTailor-Advanced/scantailor-advanced.git
+cd scantailor-advanced
+./build-macos.sh
+```
+
+This produces `scantailor-advanced_<version>_macos.dmg` in the project root. Open the DMG, drag `ScanTailor Advanced.app` to your Applications folder, and if macOS Gatekeeper blocks it on first launch run:
+
+```bash
+xattr -cr "/Applications/ScanTailor Advanced.app"
+```
+
+**Notes:**
+- The app is ad-hoc signed (no Apple Developer account required) and runs on your own Mac without issues.
+- To use a custom Qt path: `QT_MACOS_DIR=/path/to/Qt/6.x.x/macos ./build-macos.sh`
+
+---
+
+#### Building for iOS
+
+ScanTailor Advanced can be built for iPad and iPhone using Qt6 for iOS and Xcode. The result is an IPA that can be sideloaded onto a device using fakesigning (no Apple Developer account required).
+
+**Requirements:**
+
+- macOS with full Xcode installed (not just Command Line Tools) — download from the Mac App Store or [developer.apple.com](https://developer.apple.com/xcode/)
+- Homebrew
+- Qt 6.x for both **iOS** and **macOS** installed via `aqt` to `~/Qt/` — both targets must be the same version, as the macOS installation provides the host build tools required when cross-compiling for iOS
+- `ldid` for fakesigning
+
+**Install Homebrew dependencies:**
+
+```bash
+brew install cmake ldid
+```
+
+**Install Qt 6 for iOS and macOS using aqt:**
+
+Both the iOS and macOS Qt targets must be installed under the same version directory (e.g. `~/Qt/6.12.0/`). The build script expects them at `~/Qt/6.x.x/ios/` and `~/Qt/6.x.x/macos/`.
+
+```bash
+pip install aqtinstall
+
+# Install the macOS host tools (required even for iOS builds)
+aqt install-qt mac desktop 6.12.0 clang_64 \
+  --outputdir ~/Qt \
+  --modules qtsvg qtimageformats qtopengl qtnetwork qtxml
+
+# Install the iOS target
+aqt install-qt mac ios 6.12.0 ios \
+  --outputdir ~/Qt \
+  --modules qtsvg qtimageformats qtopengl qtnetwork qtxml
+```
+
+Replace `6.12.0` with your preferred Qt version. Qt 6.8 or later is recommended; the minimum supported version is Qt 6.5.
+
+**Build:**
+
+```bash
+git clone https://github.com/ScanTailor-Advanced/scantailor-advanced.git
+cd scantailor-advanced
+./build-ios.sh
+```
+
+This produces `scantailor-advanced.ipa` on your Desktop, fakesigned and ready to sideload.
+
+**Install on device:**
+
+Use [Sideloadly](https://sideloadly.io/), [AltStore](https://altstore.io/), or `ideviceinstaller`:
+
+```bash
+# With ideviceinstaller
+brew install ideviceinstaller
+ideviceinstaller -i ~/Desktop/scantailor-advanced.ipa
+```
+
+**Notes:**
+- Fakesigned IPAs installed with a free Apple ID via AltStore or Sideloadly expire after 7 days and need to be re-sideloaded. There is no such limitation when installed on a jailbroken device.
+- The iOS file browser is rooted at the app's Documents folder. To make scans accessible, copy them to the ScanTailor Advanced folder via the Files app or Finder file sharing.
+- Directory selection works fully with Magic Keyboard trackpad and keyboard navigation.
+- To override the Qt path: `QT_IOS_DIR=~/Qt/6.x.x/ios QT_MACOS_DIR=~/Qt/6.x.x/macos ./build-ios.sh`

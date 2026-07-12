@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10...3.28 FATAL_ERROR)
 
 set(target_name scantailor-advanced)
 
@@ -72,6 +72,19 @@ endif()
 
 st_set_default_build_type(Release)
 
+#=================================== Dependencies ===================================#
+
+# Detect iOS cross-compile — must happen before any find_package calls
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+  set(IOS TRUE)
+endif()
+
+# iOS: disable tests and portable version — not applicable on mobile
+if(IOS)
+  set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+  set(PORTABLE_VERSION OFF CACHE BOOL "" FORCE)
+endif()
+
 # Must be set before Boost (Flatpak and other chroot builds use -DBUILD_TESTS=OFF; issue #61).
 option(BUILD_TESTS "Build unit tests (math_tests, imageproc_tests, core_tests, foundation_tests, qt_tests)" ON)
 
@@ -86,7 +99,11 @@ if (NOT CMAKE_INSTALL_BINDIR)
   endif()
 endif()
 
-#=================================== Dependencies ===================================#
+if (APPLE)
+  if (NOT CMAKE_INSTALL_APPDIR)
+    set(CMAKE_INSTALL_APPDIR "Applications")
+  endif()
+endif()
 
 if (WIN32)
   macro(real_path_find_glob Var Glob)
@@ -134,15 +151,16 @@ endif()
 
 #=================================== JPEG ===================================#
 
-find_package(JPEG REQUIRED)
-
-if (WIN32)
-  add_dynamic_library_locations(JPEG::JPEG "libjpeg-62.dll")
+if(NOT IOS)
+  find_package(JPEG REQUIRED)
+  if (WIN32)
+    add_dynamic_library_locations(JPEG::JPEG "libjpeg-62.dll")
+  endif()
 endif()
 
 #=================================== ZLIB ===================================#
 
-find_package(ZLIB REQUIRED)
+find_package(ZLIB REQUIRED)  # available in iOS SDK, safe to find everywhere
 
 if (WIN32)
   add_dynamic_library_locations(ZLIB::ZLIB)
@@ -150,26 +168,26 @@ endif()
 
 #================================== PNG ==================================#
 
-find_package(PNG REQUIRED)
-
-if (WIN32)
-  add_dynamic_library_locations(PNG::PNG "libpng16.dll")
+if(NOT IOS)
+  find_package(PNG REQUIRED)
+  if (WIN32)
+    add_dynamic_library_locations(PNG::PNG "libpng16.dll")
+  endif()
 endif()
 
 #=================================== TIFF ===================================#
 
-find_package(TIFF REQUIRED)
-
-if (WIN32)
-  add_dynamic_library_locations(TIFF::TIFF)
-  set_target_properties(
-      TIFF::TIFF PROPERTIES
-      INTERFACE_COMPILE_DEFINITIONS USE_LIBTIFF_DLL)
+if(NOT IOS)
+  find_package(TIFF REQUIRED)
+  if (WIN32)
+    add_dynamic_library_locations(TIFF::TIFF)
+    set_target_properties(
+        TIFF::TIFF PROPERTIES
+        INTERFACE_COMPILE_DEFINITIONS USE_LIBTIFF_DLL)
+  endif()
 endif()
 
 #================================= Boost ================================#
-
-#set(Boost_NO_WARN_NEW_VERSIONS ON)
 
 if (WIN32)
   if (MINGW)
@@ -180,7 +198,6 @@ if (WIN32)
     endif()
     set(Boost_ARCHITECTURE ${_boost_architecture} CACHE STRING "")
 
-    #set(Boost_DEBUG ON)
     string(REGEX MATCHALL "[0-9]+" _boost_compiler_version ${CMAKE_CXX_COMPILER_VERSION})
     list(GET _boost_compiler_version 0 _boost_compiler_version_major)
     list(GET _boost_compiler_version 1 _boost_compiler_version_minor)
@@ -219,17 +236,26 @@ endif()
 
 set(qt_min_version 5.9)
 
-find_package(
-    Qt6
-    COMPONENTS Core Gui Widgets Xml Network LinguistTools OpenGL Svg OpenGLWidgets Test
-    CONFIG)
-if (Qt6_FOUND)
-    set(QT_BINDIR "${QT6_INSTALL_PREFIX}/bin")
+if(IOS)
+  # iOS: find only the modules that are compatible and actually installed
+  find_package(
+      Qt6
+      COMPONENTS Core Gui Widgets Xml Network LinguistTools OpenGL Svg OpenGLWidgets Test
+      CONFIG REQUIRED)
+  set(Qt6_FOUND TRUE)
 else()
-  find_package(Qt5 ${qt_min_version}
-    COMPONENTS Core Gui Widgets Xml Network LinguistTools OpenGL Svg Test
-    CONFIG REQUIRED)
-    set(QT_BINDIR "${QT5_INSTALL_PREFIX}/bin")
+  find_package(
+      Qt6
+      COMPONENTS Core Gui Widgets Xml Network LinguistTools OpenGL Svg OpenGLWidgets Test
+      CONFIG)
+  if (Qt6_FOUND)
+      set(QT_BINDIR "${QT6_INSTALL_PREFIX}/bin")
+  else()
+    find_package(Qt5 ${qt_min_version}
+      COMPONENTS Core Gui Widgets Xml Network LinguistTools OpenGL Svg Test
+      CONFIG REQUIRED)
+      set(QT_BINDIR "${QT5_INSTALL_PREFIX}/bin")
+  endif()
 endif()
 
 if(Qt6_FOUND)
@@ -252,7 +278,6 @@ else()
   set(Qt_Xml_lib Qt5::Xml)
   set(Qt_Test_lib Qt5::Test)
 endif()
-
 
 #=================================== Threads ===================================#
 
@@ -332,10 +357,12 @@ string(REGEX REPLACE "[0-9]+\\.[0-9]+\\.([0-9]+)" "\\1" APPLICATION_VERSION_PATC
 set(SCANTAILOR_RESOURCES_DIR "${CMAKE_SOURCE_DIR}/src/resources")
 set(SCANTAILOR_TRANSLATIONS_DIR "${CMAKE_SOURCE_DIR}/src/translations")
 
-configure_file(
-    "${SCANTAILOR_RESOURCES_DIR}/unix/${target_name}.desktop.in"
-    "${CMAKE_BINARY_DIR}/${target_name}.desktop"
-    @ONLY)
+if(NOT IOS)
+  configure_file(
+      "${SCANTAILOR_RESOURCES_DIR}/unix/${target_name}.desktop.in"
+      "${CMAKE_BINARY_DIR}/${target_name}.desktop"
+      @ONLY)
+endif()
 
 add_subdirectory(src)
 
@@ -351,6 +378,7 @@ if(Qt6_FOUND)
 else()
   Qt5_add_translation(qm_files ${translation_files})
 endif()
+
 add_custom_target(compile_translations ALL DEPENDS ${qm_files})
 if (WIN32)
   install(FILES ${qm_files} DESTINATION "${CMAKE_INSTALL_BINDIR}/translations")
@@ -358,7 +386,66 @@ else()
   install(FILES ${qm_files} DESTINATION "share/${APPLICATION_NAME}/translations")
 endif()
 
-# Install extra files.
+#=================================== iOS target properties ===================================#
+
+if(IOS)
+  # Bundle identifier: pass -DBUNDLE_ID=com.yourname.scantailor or
+  # let the build scripts set it automatically from $USER.
+  if(NOT BUNDLE_ID)
+    set(BUNDLE_ID "com.$ENV{USER}.scantailor")
+  endif()
+
+  set_target_properties(${target_name} PROPERTIES
+    MACOSX_BUNDLE TRUE
+    MACOSX_BUNDLE_GUI_IDENTIFIER  "${BUNDLE_ID}"
+    MACOSX_BUNDLE_BUNDLE_NAME     "ScanTailor Advanced"
+    MACOSX_BUNDLE_BUNDLE_VERSION  "${VERSION}"
+    MACOSX_BUNDLE_SHORT_VERSION_STRING "${VERSION}"
+    MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/ios/Info.plist"
+
+    # No real signing — app is fakesigned after build with ldid.
+    # Pass -DDEVELOPMENT_TEAM=XXXXXXXXXX to enable real signing.
+    XCODE_ATTRIBUTE_CODE_SIGN_STYLE               "Manual"
+    XCODE_ATTRIBUTE_DEVELOPMENT_TEAM              "${DEVELOPMENT_TEAM}"
+    XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY            ""
+    XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET    "18.0"
+    XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY        "1,2"
+    XCODE_ATTRIBUTE_ENABLE_BITCODE                "NO"
+    XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "AppIcon"
+  )
+
+  # Asset catalog must be added as a source so Xcode's actool compiles the icons.
+  set(APPICONSET "${CMAKE_SOURCE_DIR}/build-ios/AppIcon.appiconset")
+  target_sources(${target_name} PRIVATE "${APPICONSET}")
+  set_source_files_properties("${APPICONSET}"
+    PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+
+  # Qt's bundled JPEG/PNG/ZLIB/Freetype are compiled into Qt6::Gui and Qt6::Core
+  # on iOS — link the Qt modules directly, no separate bundled targets needed.
+  target_link_libraries(${target_name} PRIVATE
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Widgets
+    Qt6::Svg
+    Qt6::OpenGL
+    Qt6::OpenGLWidgets
+    Qt6::Network
+    Qt6::Xml
+  )
+
+  # Import required static plugins — mandatory for iOS
+  qt6_import_plugins(${target_name}
+    INCLUDE
+      Qt6::QIOSIntegrationPlugin
+      Qt6::QJpegPlugin
+      Qt6::QSvgPlugin
+      Qt6::QSvgIconPlugin
+      Qt6::QMinimalIntegrationPlugin
+  )
+endif()
+
+#=================================== Install (desktop only) ===================================#
+
 if (WIN32)
   macro (add_runtime_libs_to_install Configuration Libs)
     set(configurations "${Configuration}")
@@ -460,7 +547,7 @@ if (WIN32)
   install(PROGRAMS ${ADDITIONAL_RUNTIME_LIBS_DEBUG} TYPE BIN CONFIGURATIONS Debug)
 endif()
 
-if (UNIX)
+if (UNIX AND NOT IOS)
   install(FILES "${CMAKE_BINARY_DIR}/${target_name}.desktop"
       DESTINATION "share/applications")
   install(FILES "${SCANTAILOR_RESOURCES_DIR}/appicon.svg"

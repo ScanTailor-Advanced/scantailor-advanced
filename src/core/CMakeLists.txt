@@ -119,7 +119,14 @@ set(common_sources
 
 add_library(core STATIC ${common_sources} ${common_ui_files})
 
-if(Qt6_FOUND)
+# iOS: link only Qt modules; TIFF/PNG/JPEG/ZLIB are bundled inside Qt
+if(IOS AND Qt6_FOUND)
+  target_link_libraries(
+    core
+    PUBLIC Qt::Core Qt::Gui Qt::Widgets Qt::Xml Qt::Network Qt::OpenGL Qt::Svg Qt::OpenGLWidgets
+    imageproc zones
+    fix_orientation page_split deskew select_content page_layout output)
+elseif(Qt6_FOUND)
   target_link_libraries(
     core
     PRIVATE TIFF::TIFF PNG::PNG ZLIB::ZLIB JPEG::JPEG
@@ -134,6 +141,7 @@ else()
     imageproc zones
     fix_orientation page_split deskew select_content page_layout output)
 endif()
+
 target_include_directories(core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 set_target_properties(core PROPERTIES AUTOUIC ON)
 

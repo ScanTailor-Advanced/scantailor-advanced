@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key>            <string>ScanTailor Advanced</string>
+  <key>CFBundleDisplayName</key>     <string>ScanTailor Advanced</string>
+  <key>CFBundleIdentifier</key>      <string>com.sunneva.scantailor</string>
+  <key>CFBundleVersion</key>         <string>1.0</string>
+  <key>CFBundleShortVersionString</key><string>1.0</string>
+  <key>CFBundlePackageType</key>     <string>APPL</string>
+  <key>CFBundleExecutable</key>      <string>$(EXECUTABLE_NAME)</string>
+  <key>CFBundleIconName</key>        <string>AppIcon</string>
+  <key>LSRequiresIPhoneOS</key>      <true/>
+  <key>UIFileSharingEnabled</key>    <true/>
+  <key>LSSupportsOpeningDocumentsInPlace</key><true/>
+  <key>UISupportsDocumentBrowser</key><true/>
+  <key>NSPhotoLibraryUsageDescription</key>
+  <string>ScanTailor needs access to your photos to process scanned images.</string>
+
+  <key>CFBundleDocumentTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleTypeName</key>       <string>Image</string>
+      <key>CFBundleTypeRole</key>       <string>Viewer</string>
+      <key>LSItemContentTypes</key>
+      <array>
+        <string>public.image</string>
+        <string>public.jpeg</string>
+        <string>public.png</string>
+        <string>public.tiff</string>
+      </array>
+    </dict>
+    <dict>
+      <key>CFBundleTypeName</key>       <string>ScanTailor Project</string>
+      <key>CFBundleTypeRole</key>       <string>Editor</string>
+      <key>LSItemContentTypes</key>
+      <array>
+        <string>public.data</string>
+      </array>
+    </dict>
+  </array>
+
+  <key>UIRequiredDeviceCapabilities</key>
+  <array><string>arm64</string></array>
+  <key>UISupportedInterfaceOrientations</key>
+  <array>
+    <string>UIInterfaceOrientationPortrait</string>
+    <string>UIInterfaceOrientationLandscapeLeft</string>
+    <string>UIInterfaceOrientationLandscapeRight</string>
+  </array>
+  <key>UISupportedInterfaceOrientations~ipad</key>
+  <array>
+    <string>UIInterfaceOrientationPortrait</string>
+    <string>UIInterfaceOrientationPortraitUpsideDown</string>
+    <string>UIInterfaceOrientationLandscapeLeft</string>
+    <string>UIInterfaceOrientationLandscapeRight</string>
+  </array>
+</dict>
+</plist>
