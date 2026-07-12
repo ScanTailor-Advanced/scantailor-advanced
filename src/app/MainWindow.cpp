@@ -1335,7 +1335,7 @@ void MainWindow::filterResult(const BackgroundTaskPtr& task, const FilterResultP
         if (cmd.isEmpty()) {
           QApplication::beep();
         } else {
-          #if !defined(Q_OS_IOS)
+#if !defined(Q_OS_IOS)
           Q_UNUSED(std::system(cmd.toStdString().c_str()));
 #endif
         }
@@ -1430,9 +1430,9 @@ void MainWindow::saveProjectAsTriggered() {
   QString projectFile(
       QFileDialog::getSaveFileName(this, QString(), projectDir, tr("Scan Tailor Projects") + " (*.ScanTailor)",
 #if defined(Q_OS_IOS)
-          nullptr, QFileDialog::DontUseNativeDialog
+        nullptr, QFileDialog::DontUseNativeDialog
 #else
-          nullptr
+        nullptr
 #endif
       ));
   if (projectFile.isEmpty()) {
@@ -1482,12 +1482,13 @@ void MainWindow::openProject() {
 #else
   const QString projectDir(QSettings().value("project/lastDir").toString());
 #endif
-  const QString projectFile(QFileDialog::getOpenFileName(this, tr("Open Project"), projectDir,
-                                                         tr("Scan Tailor Projects") + " (*.ScanTailor)"
+  const QString projectFile(QFileDialog::getOpenFileName(
+    this, tr("Open Project"), projectDir,
+    tr("Scan Tailor Projects") + " (*.ScanTailor)"
 #if defined(Q_OS_IOS)
-                                                         , nullptr, QFileDialog::DontUseNativeDialog
+    , nullptr, QFileDialog::DontUseNativeDialog
 #endif
-  ));
+    ));
   if (projectFile.isEmpty()) {
     // Cancelled by user.
     return;

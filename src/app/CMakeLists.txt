@@ -54,6 +54,7 @@ if (WIN32)
       "${rc_file}" PROPERTIES
       OBJECT_DEPENDS ${win32_resources})
   if (MINGW)
+    # CMake doesn't know how to process .rc files with MinGW.
     set(win32_resource_file "${CMAKE_BINARY_DIR}/win32_resources.o")
     add_custom_command(
         OUTPUT "${win32_resource_file}"
@@ -112,6 +113,7 @@ install(TARGETS ${target_name}
     BUNDLE DESTINATION "${CMAKE_INSTALL_APPDIR}")
 
 if(Qt6_FOUND AND WIN32)
+  #manage plugins with windeployqt.
   add_custom_command(
       TARGET ${target_name}
       POST_BUILD

@@ -41,7 +41,7 @@ fi
 # iOS — AppIcon.appiconset
 # ══════════════════════════════════════════════════════════════════════════════
 
-IOS_DIR="${SCRIPT_DIR}/ios/AppIcon.appiconset"
+IOS_DIR="${SCRIPT_DIR}/build-ios/AppIcon.appiconset"
 mkdir -p "$IOS_DIR"
 
 echo "Generating iOS icons..."
@@ -114,5 +114,4 @@ rm -rf "$ICONSET"
 
 echo "macOS .icns → $ICNS"
 echo ""
-echo "Done. Commit with:"
-echo "  git add ios/AppIcon.appiconset src/resources/appicon-ios.png src/resources/appicon.icns"
+echo "Done."

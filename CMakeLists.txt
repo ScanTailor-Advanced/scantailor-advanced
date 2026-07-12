@@ -189,50 +189,48 @@ endif()
 
 #================================= Boost ================================#
 
-if(NOT IOS)
-  if (WIN32)
-    if (MINGW)
-      if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-        set(_boost_architecture "-x64")
-      else()
-        set(_boost_architecture "-x32")
-      endif()
-      set(Boost_ARCHITECTURE ${_boost_architecture} CACHE STRING "")
-
-      string(REGEX MATCHALL "[0-9]+" _boost_compiler_version ${CMAKE_CXX_COMPILER_VERSION})
-      list(GET _boost_compiler_version 0 _boost_compiler_version_major)
-      list(GET _boost_compiler_version 1 _boost_compiler_version_minor)
-      set(Boost_COMPILER "-mgw${_boost_compiler_version_major}" CACHE STRING "")
+if (WIN32)
+  if (MINGW)
+    if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+      set(_boost_architecture "-x64")
+    else()
+      set(_boost_architecture "-x32")
     endif()
+    set(Boost_ARCHITECTURE ${_boost_architecture} CACHE STRING "")
 
-    real_path_find_glob(boost_include_dir_hints "${BOOST_ROOT}/include/boost-[_0-9]*/boost")
-    list(APPEND boost_include_dir_hints "${BOOST_ROOT}/include/boost" "${BOOST_ROOT}/boost")
-    find_path(
-        BOOST_INCLUDEDIR config.hpp
-        HINTS ${boost_include_dir_hints}
-        DOC "Boost include directory.")
-
-    set(Boost_USE_STATIC_LIBS ON)
-  endif()
-  set(Boost_USE_MULTITHREADED ON)
-
-  if (BUILD_TESTS)
-    find_package(Boost 1.60 COMPONENTS unit_test_framework REQUIRED)
-  else()
-    find_package(Boost 1.60 REQUIRED)
+    string(REGEX MATCHALL "[0-9]+" _boost_compiler_version ${CMAKE_CXX_COMPILER_VERSION})
+    list(GET _boost_compiler_version 0 _boost_compiler_version_major)
+    list(GET _boost_compiler_version 1 _boost_compiler_version_minor)
+    set(Boost_COMPILER "-mgw${_boost_compiler_version_major}" CACHE STRING "")
   endif()
 
-  include_directories(${Boost_INCLUDE_DIRS})
-  add_definitions(-DBOOST_MULTI_INDEX_DISABLE_SERIALIZATION)
-  if (BUILD_TESTS)
-    if (NOT Boost_USE_STATIC_LIBS)
-      if (WIN32)
-        add_dynamic_library_locations(Boost::unit_test_framework)
-      endif()
-      add_definitions(-DBOOST_TEST_DYN_LINK)
+  real_path_find_glob(boost_include_dir_hints "${BOOST_ROOT}/include/boost-[_0-9]*/boost")
+  list(APPEND boost_include_dir_hints "${BOOST_ROOT}/include/boost" "${BOOST_ROOT}/boost")
+  find_path(
+      BOOST_INCLUDEDIR config.hpp
+      HINTS ${boost_include_dir_hints}
+      DOC "Boost include directory.")
+
+  set(Boost_USE_STATIC_LIBS ON)
+endif()
+set(Boost_USE_MULTITHREADED ON)
+
+if (BUILD_TESTS)
+  find_package(Boost 1.60 COMPONENTS unit_test_framework REQUIRED)
+else()
+  find_package(Boost 1.60 REQUIRED)
+endif()
+
+include_directories(${Boost_INCLUDE_DIRS})
+add_definitions(-DBOOST_MULTI_INDEX_DISABLE_SERIALIZATION)
+if (BUILD_TESTS)
+  if (NOT Boost_USE_STATIC_LIBS)
+    if (WIN32)
+      add_dynamic_library_locations(Boost::unit_test_framework)
     endif()
+    add_definitions(-DBOOST_TEST_DYN_LINK)
   endif()
-endif() # NOT IOS
+endif()
 
 #=================================== Qt ===================================#
 
@@ -417,7 +415,7 @@ if(IOS)
   )
 
   # Asset catalog must be added as a source so Xcode's actool compiles the icons.
-  set(APPICONSET "${CMAKE_SOURCE_DIR}/ios/AppIcon.appiconset")
+  set(APPICONSET "${CMAKE_SOURCE_DIR}/build-ios/AppIcon.appiconset")
   target_sources(${target_name} PRIVATE "${APPICONSET}")
   set_source_files_properties("${APPICONSET}"
     PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
@@ -469,6 +467,7 @@ if (WIN32)
     endif()
   endmacro()
 
+  # Install the DLLs of the dependencies.
   if(Qt6_FOUND)
     set(dep_libs
         JPEG::JPEG PNG::PNG ZLIB::ZLIB TIFF::TIFF
@@ -498,7 +497,9 @@ if (WIN32)
     add_runtime_libs_to_install(DEBUG "${debug_loc}")
   endforeach()
 
+  #with Qt6, winqtdeploy is used to deploy plugins; the method below does not work anymore.
   if (NOT Qt6_FOUND)
+    # Install Qt plugins.
     macro (install_qt_plugin SubDir Target)
       if (TARGET ${Target})
         get_target_property(target_type ${Target} TYPE)
@@ -527,6 +528,7 @@ if (WIN32)
     install_qt_plugin("imageformats" Qt::QSvgPlugin)
   endif()
 
+  # Install MinGW runtime components.
   if (MINGW)
     get_filename_component(_mingw_path ${CMAKE_CXX_COMPILER} PATH)
     file(GLOB libgcc_s "${_mingw_path}/libgcc_s_*.dll")
@@ -538,6 +540,7 @@ if (WIN32)
   copy_to_build_dir(${ADDITIONAL_RUNTIME_LIBS_RELEASE} CONFIGURATIONS Release MinSizeRel RelWithDebInfo)
   copy_to_build_dir(${ADDITIONAL_RUNTIME_LIBS_DEBUG} CONFIGURATIONS Debug)
 
+  # Generate the target that will actually do the copying.
   generate_copy_to_build_dir_target(copy_to_build_dir)
 
   install(PROGRAMS ${ADDITIONAL_RUNTIME_LIBS_RELEASE} TYPE BIN CONFIGURATIONS Release MinSizeRel RelWithDebInfo)

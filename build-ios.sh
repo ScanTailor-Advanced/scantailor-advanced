@@ -133,7 +133,7 @@ IPA_DIR="/tmp/scantailor-ipa-$$"
 mkdir -p "${IPA_DIR}/Payload"
 cp -r "$APP" "${IPA_DIR}/Payload/"
 
-IPA_PATH="${SCRIPT_DIR}/scantailor-advanced_${VERSION}_ios.ipa"
+IPA_PATH="${BUILD_DIR}/scantailor-advanced_${VERSION}_ios.ipa"
 cd "$IPA_DIR"
 zip -r "$IPA_PATH" Payload/
 rm -rf "$IPA_DIR"

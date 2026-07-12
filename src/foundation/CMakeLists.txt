@@ -34,12 +34,9 @@ add_library(foundation STATIC ${sources})
 target_link_libraries(foundation PUBLIC ${Qt_Core_lib} ${Qt_Xml_lib} ${Qt_Gui_lib})
 target_include_directories(foundation PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
-# Boost is header-only for all components used in this project.
-# On iOS, Boost is not found via find_package, so point directly at the headers.
-if(IOS)
-  target_include_directories(foundation PUBLIC /opt/homebrew/include)
-else()
-  target_include_directories(foundation PUBLIC ${Boost_INCLUDE_DIRS})
+if(IOS AND POLICY CMP0167)
+  # re-enable FindBoost.cmake
+  cmake_policy(SET CMP0167 OLD)
 endif()
 
 if (BUILD_TESTS)

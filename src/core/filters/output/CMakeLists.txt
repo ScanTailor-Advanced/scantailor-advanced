@@ -1,4 +1,5 @@
 set(CMAKE_AUTOUIC ON)
+
 set(ui_files
     ApplyColorsDialog.ui
     ChangeDewarpingDialog.ui
@@ -8,6 +9,7 @@ set(ui_files
     OptionsWidgetBinarizationSauvola.ui
     OptionsWidgetBinarizationWolf.ui
     PictureZonePropDialog.ui)
+
 set(sources
     ApplyColorsDialog.cpp ApplyColorsDialog.h
     ChangeDpiDialog.cpp ChangeDpiDialog.h

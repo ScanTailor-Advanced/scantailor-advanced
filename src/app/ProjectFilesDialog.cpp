@@ -6,19 +6,20 @@
 #include <core/IconProvider.h>
 
 #include <QFileDialog>
-#ifdef Q_OS_IOS
-#include "ios/IosDirectoryPicker.h"
-#endif
-#include <QStandardPaths>
 #include <QMessageBox>
 #include <QSettings>
 #include <QSortFilterProxyModel>
+#include <QStandardPaths>
 #include <QVector>
 #include <deque>
 
 #include "ImageMetadataLoader.h"
 #include "NonCopyable.h"
 #include "SmartFilenameOrdering.h"
+
+#ifdef Q_OS_IOS
+#include "ios/IosDirectoryPicker.h"
+#endif
 
 class ProjectFilesDialog::Item {
  public:
@@ -257,12 +258,13 @@ void ProjectFilesDialog::inpDirBrowse() {
   }
 #else
   {
-    const QString dir(QFileDialog::getExistingDirectory(this, tr("Input Directory"), initialDir,
-#  if defined(Q_OS_MACOS)
-        QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog
-#  else
-        QFileDialog::ShowDirsOnly
-#  endif
+    const QString dir(QFileDialog::getExistingDirectory(
+      this,tr("Input Directory"), initialDir,
+#if defined(Q_OS_MACOS)
+      QFileDialog::ShowDirsOnly | QFileDialog::DontUseNativeDialog
+#else
+      QFileDialog::ShowDirsOnly
+#endif
     ));
     if (!dir.isEmpty()) {
       setInputDir(dir);
