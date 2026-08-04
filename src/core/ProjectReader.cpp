@@ -22,7 +22,10 @@ ProjectReader::ProjectReader(const QDomDocument& doc, const QString& projectFile
   QDomElement projectEl(m_doc.documentElement());
 
   m_version = projectEl.attribute("version");
-  if (m_version.isNull() || (m_version.toInt() != PROJECT_VERSION)) {
+  // Version 3 projects (4lex4-era through v1.1.x) are readable as is:
+  // attributes added since then all have fallbacks in the readers.
+  const int version = m_version.toInt();
+  if (m_version.isNull() || version < 3 || version > PROJECT_VERSION) {
     return;
   }
 
