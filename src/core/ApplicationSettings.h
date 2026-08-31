@@ -114,6 +114,11 @@ class ApplicationSettings {
 
   void setOutputShowGuidesEnabled(bool enabled);
 
+  /** Disable page box masking when searching for content. */
+  bool isContentDetectionIgnoringPageBox() const;
+
+  void setContentDetectionIgnoringPageBox(bool enabled);
+
  private:
   static inline QString getKey(const QString& keyName);
 
@@ -163,9 +168,11 @@ class ApplicationSettings {
   static const QString SHOW_CANCELING_SELECTION_QUESTION_KEY;
   static const QString DEFAULT_ZONE_CREATION_MODE_KEY;
   static const QString OUTPUT_SHOW_GUIDES_KEY;
+  static const QString CONTENT_DETECTION_IGNORE_PAGE_BOX_KEY;
 
   static const int DEFAULT_ZONE_CREATION_MODE;  // 0 = polygonal
   static const bool DEFAULT_OUTPUT_SHOW_GUIDES;
+  static const bool DEFAULT_CONTENT_DETECTION_IGNORE_PAGE_BOX;
 
   QSettings m_settings;
 };

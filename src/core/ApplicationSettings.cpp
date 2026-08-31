@@ -54,8 +54,10 @@ const QString ApplicationSettings::CURRENT_PROFILE_KEY = "current_profile";
 const QString ApplicationSettings::SHOW_CANCELING_SELECTION_QUESTION_KEY = "selection_canceling_question";
 const QString ApplicationSettings::DEFAULT_ZONE_CREATION_MODE_KEY = "default_zone_creation_mode";
 const QString ApplicationSettings::OUTPUT_SHOW_GUIDES_KEY = "output_show_guides";
+const QString ApplicationSettings::CONTENT_DETECTION_IGNORE_PAGE_BOX_KEY = "content_detection_ignore_page_box";
 const int ApplicationSettings::DEFAULT_ZONE_CREATION_MODE = 0;  // POLYGONAL
 const bool ApplicationSettings::DEFAULT_OUTPUT_SHOW_GUIDES = false;
+const bool ApplicationSettings::DEFAULT_CONTENT_DETECTION_IGNORE_PAGE_BOX = false;
 
 QString ApplicationSettings::getKey(const QString& keyName) {
   return ApplicationSettings::ROOT_KEY + '/' + keyName;
@@ -257,4 +259,13 @@ bool ApplicationSettings::isOutputShowGuidesEnabled() const {
 
 void ApplicationSettings::setOutputShowGuidesEnabled(bool enabled) {
   m_settings.setValue(getKey(OUTPUT_SHOW_GUIDES_KEY), enabled);
+}
+
+bool ApplicationSettings::isContentDetectionIgnoringPageBox() const {
+  return m_settings.value(getKey(CONTENT_DETECTION_IGNORE_PAGE_BOX_KEY), DEFAULT_CONTENT_DETECTION_IGNORE_PAGE_BOX)
+      .toBool();
+}
+
+void ApplicationSettings::setContentDetectionIgnoringPageBox(bool enabled) {
+  m_settings.setValue(getKey(CONTENT_DETECTION_IGNORE_PAGE_BOX_KEY), enabled);
 }

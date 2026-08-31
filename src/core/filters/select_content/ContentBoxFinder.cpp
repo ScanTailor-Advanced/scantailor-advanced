@@ -19,6 +19,7 @@
 #include <SeedFill.h>
 #include <SlicedHistogram.h>
 #include <Transform.h>
+#include <core/ApplicationSettings.h>
 
 #include <QDebug>
 #include <QPainter>
@@ -97,11 +98,15 @@ QRectF ContentBoxFinder::findContentBox(const TaskStatus& status,
     dbg->add(bw150, "bw150");
   }
 
-  const double xscale = 150.0 / data.xform().origDpi().horizontal();
-  const double yscale = 150.0 / data.xform().origDpi().vertical();
-  QRectF pageRect150(pageRect.left() * xscale, pageRect.top() * yscale, pageRect.right() * xscale,
-                     pageRect.bottom() * yscale);
-  PolygonRasterizer::fillExcept(bw150, BLACK, pageRect150, Qt::WindingFill);
+  // Masking everything outside the page box sometimes leads to worse content detection.
+  // Skipping the mask lets the search use the whole image.
+  if (!ApplicationSettings::getInstance().isContentDetectionIgnoringPageBox()) {
+    const double xscale = 150.0 / data.xform().origDpi().horizontal();
+    const double yscale = 150.0 / data.xform().origDpi().vertical();
+    QRectF pageRect150(pageRect.left() * xscale, pageRect.top() * yscale, pageRect.right() * xscale,
+                       pageRect.bottom() * yscale);
+    PolygonRasterizer::fillExcept(bw150, BLACK, pageRect150, Qt::WindingFill);
+  }
 
   PolygonRasterizer::fillExcept(bw150, BLACK, xform150dpi.resultingPreCropArea(), Qt::WindingFill);
   if (dbg) {

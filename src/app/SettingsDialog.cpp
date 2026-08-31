@@ -65,6 +65,8 @@ SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent) {
   ui.blackOnWhiteDetectionAtOutputCB->setChecked(settings.isBlackOnWhiteDetectionOutputEnabled());
   connect(ui.blackOnWhiteDetectionCB, SIGNAL(clicked(bool)), SLOT(blackOnWhiteDetectionToggled(bool)));
 
+  ui.contentDetectionIgnorePageBoxCB->setChecked(settings.isContentDetectionIgnoringPageBox());
+
   ui.highlightDeviationCB->setChecked(settings.isHighlightDeviationEnabled());
 
   ui.deskewDeviationCoefSB->setValue(settings.getDeskewDeviationCoef());
@@ -108,6 +110,8 @@ void SettingsDialog::commitChanges() {
 
   settings.setBlackOnWhiteDetectionEnabled(ui.blackOnWhiteDetectionCB->isChecked());
   settings.setBlackOnWhiteDetectionOutputEnabled(ui.blackOnWhiteDetectionAtOutputCB->isChecked());
+
+  settings.setContentDetectionIgnoringPageBox(ui.contentDetectionIgnorePageBoxCB->isChecked());
 
   {
     const int quality = ui.thumbnailQualitySB->value();

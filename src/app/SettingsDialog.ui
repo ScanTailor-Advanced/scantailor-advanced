@@ -320,6 +320,38 @@
         </widget>
        </item>
        <item>
+        <widget class="QGroupBox" name="groupBox_5">
+         <property name="title">
+          <string>Content detection</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_8">
+          <item>
+           <widget class="QCheckBox" name="contentDetectionIgnorePageBoxCB">
+            <property name="text">
+             <string>Detect content independently of the page box</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="contentDetectionIgnorePageBoxLabel">
+            <property name="text">
+             <string>Use the whole image to search for content instead of only the area inside the page box. Useful when the page box noticeably deteriorates content recognition. The detected content box is still clipped to the page box afterwards. Re-run the Select Content stage to apply this to already processed pages.</string>
+            </property>
+            <property name="textFormat">
+             <enum>Qt::PlainText</enum>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+            <property name="indent">
+             <number>20</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <widget class="QGroupBox" name="groupBox_3">
          <property name="title">
           <string>Deviation</string>
