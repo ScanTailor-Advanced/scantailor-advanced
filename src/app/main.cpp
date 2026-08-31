@@ -11,6 +11,7 @@
 #include <core/StyledIconPack.h>
 
 #include <QGuiApplication>
+#include <QImageReader>
 #include <QSettings>
 #include <QStringList>
 
@@ -32,6 +33,14 @@ int main(int argc, char* argv[]) {
 #endif
 #endif
   Application app(argc, argv);
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+  // By default, Qt6 refuses to decode any image whose *uncompressed* size exceeds 256 MB,
+  // which is routinely hit by high-DPI scans of large pages.
+  if (!qEnvironmentVariableIsSet("QT_IMAGEIO_MAXALLOC")) {
+    QImageReader::setAllocationLimit(0);
+  }
+#endif
 
 #ifdef _WIN32
   // Get rid of all references to Qt's installation directory.
