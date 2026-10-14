@@ -14,7 +14,7 @@ BOOST_AUTO_TEST_CASE(test_line_through_rect_center) {
   QLineF line(-10, 50, 110, 50);
   const bool ok = lineBoundedByRect(line, rect);
   BOOST_REQUIRE(ok);
-  BOOST_CHECK_CLOSE(line.p1().x(), 0.0, 0.01);
+  BOOST_CHECK_SMALL(line.p1().x(), 1e-9);
   BOOST_CHECK_CLOSE(line.p1().y(), 50.0, 0.01);
   BOOST_CHECK_CLOSE(line.p2().x(), 100.0, 0.01);
   BOOST_CHECK_CLOSE(line.p2().y(), 50.0, 0.01);

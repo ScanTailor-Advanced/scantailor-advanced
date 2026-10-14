@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE(params_zero_oblique_roundtrip_xml) {
   const Params restored(doc.documentElement());
 
   BOOST_CHECK_CLOSE(restored.deskewAngle(), deskewDeg, 1e-6);
-  BOOST_CHECK_CLOSE(restored.obliqueAngle(), 0.0, 1e-6);
+  BOOST_CHECK_SMALL(restored.obliqueAngle(), 1e-9);
   BOOST_CHECK(restored.mode() == MODE_AUTO);
   BOOST_CHECK(restored.obliqueMode() == MODE_AUTO);
 }
