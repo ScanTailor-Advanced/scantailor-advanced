@@ -61,9 +61,15 @@ mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
 
 echo "Cross-compiling for Windows (${MXE_TARGET})..."
-cmake -DCMAKE_TOOLCHAIN_FILE="${TOOLCHAIN_FILE}" \
-  -DCMAKE_BUILD_TYPE=Release \
-  ..
+MXE_CMAKE="${MXE_ROOT}/usr/bin/${MXE_TARGET}-cmake"
+if [[ -x "$MXE_CMAKE" ]]; then
+  "$MXE_CMAKE" -DMXE_USE_CCACHE=OFF -DCMAKE_BUILD_TYPE=Release ..
+else
+  cmake -DCMAKE_TOOLCHAIN_FILE="${TOOLCHAIN_FILE}" \
+    -DMXE_USE_CCACHE=OFF \
+    -DCMAKE_BUILD_TYPE=Release \
+    ..
+fi
 
 make -j"$(nproc)"
 

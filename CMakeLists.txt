@@ -454,7 +454,7 @@ if (WIN32)
   copy_to_build_dir(${ADDITIONAL_RUNTIME_LIBS_DEBUG} CONFIGURATIONS Debug)
 
   # Generate the target that will actually do the copying.
-  generate_copy_to_build_dir_target(copy_to_build_dir)
+  generate_copy_to_build_dir_target(copy_to_build_dir ${target_name})
 
   install(PROGRAMS ${ADDITIONAL_RUNTIME_LIBS_RELEASE} TYPE BIN CONFIGURATIONS Release MinSizeRel RelWithDebInfo)
   install(PROGRAMS ${ADDITIONAL_RUNTIME_LIBS_DEBUG} TYPE BIN CONFIGURATIONS Debug)

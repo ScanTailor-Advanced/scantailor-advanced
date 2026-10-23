@@ -491,7 +491,9 @@ Then from the ScanTailor Advanced source directory:
 ./build-windows.sh
 ```
 
-This produces `build-win-static/scantailor.exe`. Use `./build-windows.sh shared` for a smaller build that requires shipping DLLs from MXE’s `usr/x86_64-w64-mingw32.shared/bin/` alongside the .exe.
+This produces `build-win-static/scantailor-advanced.exe`. Use `./build-windows.sh shared` for a smaller build that requires shipping DLLs from MXE’s `usr/x86_64-w64-mingw32.shared/bin/` alongside the .exe.
+
+**On GitHub Actions:** the manually triggered **Windows (MXE cross-compile)** workflow (`.github/workflows/windows-mxe.yml`) does the same on a GitHub-hosted runner. Open the **Actions** tab, select the workflow and click **Run workflow**. When it finishes, download the `scantailor-advanced-windows-x64` artifact from the run’s summary page. The first run builds MXE from scratch and can take several hours; if it hits the time limit, progress is cached, so re-run the workflow to continue. Later runs reuse the cached MXE.
 
 #### Building on Windows (native)
 

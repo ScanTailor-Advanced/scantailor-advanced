@@ -1,0 +1,144 @@
+name: Windows (MXE cross-compile)
+
+# Builds a static Windows .exe from Linux using MXE and ./build-windows.sh.
+# Manual trigger only: the first (uncached) MXE build of Qt5 takes several hours.
+# If MXE does not finish within the time limit, its progress is cached and
+# re-running the workflow continues where it left off.
+on:
+  workflow_dispatch:
+    inputs:
+      mxe_ref:
+        description: "MXE git ref (branch, tag or commit) to build"
+        required: false
+        default: "master"
+
+permissions:
+  contents: read
+
+env:
+  MXE_TARGET: x86_64-w64-mingw32.static
+  MXE_PACKAGES: qt5 jpeg libpng tiff zlib boost
+
+jobs:
+  build-windows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force || true
+          df -h /
+
+      - name: Install MXE prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            autoconf automake autopoint bash bison bzip2 clang cmake flex \
+            g++ g++-multilib gettext git gperf intltool libc6-dev-i386 \
+            libclang-dev libgdk-pixbuf2.0-dev libltdl-dev libgl-dev \
+            libpcre2-dev libssl-dev libtool-bin libxml-parser-perl lzip \
+            make openssl p7zip-full patch perl python3 python3-mako \
+            python3-packaging python3-pkg-resources python3-setuptools \
+            python-is-python3 ruby sed sqlite3 unzip wget xz-utils
+
+      - name: Resolve MXE revision
+        id: mxe-rev
+        env:
+          MXE_REF: ${{ inputs.mxe_ref || 'master' }}
+        run: |
+          if [[ "$MXE_REF" =~ ^[0-9a-f]{40}$ ]]; then
+            sha="$MXE_REF"
+          else
+            sha=$(git ls-remote https://github.com/mxe/mxe.git "$MXE_REF" | head -1 | cut -f1)
+          fi
+          if [[ -z "$sha" ]]; then
+            echo "Could not resolve MXE ref '$MXE_REF'" >&2
+            exit 1
+          fi
+          pkgs_hash=$(echo "$MXE_PACKAGES" | sha256sum | cut -c1-12)
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "prefix=mxe-${{ runner.os }}-$MXE_TARGET-$pkgs_hash" >> "$GITHUB_OUTPUT"
+          echo "MXE_DIR=${{ runner.temp }}/mxe" >> "$GITHUB_ENV"
+
+      # Falls back to an older (partial or other revision) cache; MXE then only
+      # builds what is missing or changed.
+      - name: Restore MXE cache
+        id: mxe-cache
+        uses: actions/cache/restore@v5
+        with:
+          path: ${{ runner.temp }}/mxe
+          key: ${{ steps.mxe-rev.outputs.prefix }}-${{ steps.mxe-rev.outputs.sha }}-complete
+          restore-keys: |
+            ${{ steps.mxe-rev.outputs.prefix }}-${{ steps.mxe-rev.outputs.sha }}-
+            ${{ steps.mxe-rev.outputs.prefix }}-
+
+      - name: Build MXE packages
+        id: mxe-build
+        if: steps.mxe-cache.outputs.cache-hit != 'true'
+        continue-on-error: true
+        timeout-minutes: 300
+        run: |
+          mkdir -p "$MXE_DIR"
+          cd "$MXE_DIR"
+          if [[ ! -d .git ]]; then
+            git init -q
+            git remote add origin https://github.com/mxe/mxe.git
+          fi
+          git fetch --depth 1 origin "${{ steps.mxe-rev.outputs.sha }}"
+          git checkout -q -f FETCH_HEAD
+          # shellcheck disable=SC2086 # MXE_PACKAGES is intentionally word-split
+          make -j2 JOBS="$(nproc)" MXE_TARGETS="$MXE_TARGET" $MXE_PACKAGES || {
+            for f in log/*; do [[ -f "$f" ]] && { echo "::group::$f"; tail -n 100 "$f"; echo "::endgroup::"; }; done
+            exit 1
+          }
+
+      - name: Prepare MXE cache
+        if: always() && (steps.mxe-build.outcome == 'success' || steps.mxe-build.outcome == 'failure')
+        run: |
+          # Drop downloads, logs and temporary build dirs to keep the cache small.
+          rm -rf "$MXE_DIR"/pkg "$MXE_DIR"/log "$MXE_DIR"/tmp-* "$MXE_DIR"/.ccache
+          if [[ "${{ steps.mxe-build.outcome }}" == "success" ]]; then
+            echo "CACHE_KEY=${{ steps.mxe-rev.outputs.prefix }}-${{ steps.mxe-rev.outputs.sha }}-complete" >> "$GITHUB_ENV"
+          else
+            echo "CACHE_KEY=${{ steps.mxe-rev.outputs.prefix }}-${{ steps.mxe-rev.outputs.sha }}-partial-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_ENV"
+          fi
+
+      - uses: actions/cache/save@v5
+        if: always() && env.CACHE_KEY != ''
+        with:
+          path: ${{ runner.temp }}/mxe
+          key: ${{ env.CACHE_KEY }}
+
+      - name: Check MXE build result
+        if: steps.mxe-build.outcome == 'failure'
+        run: |
+          echo "::error::MXE build did not finish (failed or hit the time limit). Progress was cached; re-run this workflow to continue."
+          exit 1
+
+      - name: Build scantailor-advanced.exe
+        run: |
+          chmod +x build-windows.sh
+          export PATH="$MXE_DIR/usr/bin:$PATH"
+          MXE_DIR="$MXE_DIR" ./build-windows.sh
+
+      - name: Collect executable
+        run: |
+          exe=$(find build-win-static -type f \( -name scantailor-advanced.exe -o -name scantailor.exe \) | head -1)
+          if [[ -z "$exe" ]]; then
+            echo "::error::No Windows executable found in build-win-static" >&2
+            exit 1
+          fi
+          mkdir -p dist
+          cp "$exe" dist/scantailor-advanced.exe
+          ls -l dist
+
+      - name: Upload Windows executable
+        uses: actions/upload-artifact@v6
+        with:
+          name: scantailor-advanced-windows-x64
+          path: dist/scantailor-advanced.exe
+          if-no-files-found: error
