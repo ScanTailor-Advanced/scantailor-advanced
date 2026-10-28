@@ -224,12 +224,17 @@ find_package(
     COMPONENTS Core Gui Widgets Xml Network LinguistTools OpenGL Svg OpenGLWidgets Test
     CONFIG)
 if (Qt6_FOUND)
-    set(QT_BINDIR "${QT6_INSTALL_PREFIX}/bin")
+    # A Qt kit keeps its host tools in <prefix>/bin, a vcpkg install moves them to
+    # <prefix>/tools/Qt6/bin. Prefer the kit location, which always matches the Qt
+    # package that was found, and fall back to the imported target for the vcpkg one.
+    set(WINDEPLOYQT_EXECUTABLE "${QT6_INSTALL_PREFIX}/bin/windeployqt.exe")
+    if (NOT EXISTS "${WINDEPLOYQT_EXECUTABLE}" AND TARGET Qt6::windeployqt)
+      get_target_property(WINDEPLOYQT_EXECUTABLE Qt6::windeployqt IMPORTED_LOCATION)
+    endif()
 else()
   find_package(Qt5 ${qt_min_version}
     COMPONENTS Core Gui Widgets Xml Network LinguistTools OpenGL Svg Test
     CONFIG REQUIRED)
-    set(QT_BINDIR "${QT5_INSTALL_PREFIX}/bin")
 endif()
 
 if(Qt6_FOUND)

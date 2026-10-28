@@ -496,3 +496,31 @@ This produces `build-win-static/scantailor.exe`. Use `./build-windows.sh shared`
 #### Building on Windows (native)
 
 Go to [this repository](https://github.com/4lex4/scantailor-libs-build) and follow the instructions given there.
+
+Alternatively, configure against [vcpkg](https://github.com/microsoft/vcpkg) ports, which is what
+[`.github/workflows/windows.yml`](.github/workflows/windows.yml) does:
+
+```powershell
+vcpkg install --triplet x64-windows zlib libpng libjpeg-turbo tiff `
+  boost-array boost-bind boost-foreach boost-function boost-intrusive `
+  boost-iterator boost-lambda boost-mpl boost-multi-index boost-smart-ptr
+cmake -S . -B build -A x64 `
+  -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
+  -DVCPKG_TARGET_TRIPLET=x64-windows -DBUILD_TESTS=OFF
+cmake --build build --config Release
+```
+
+Boost is needed as headers only when unit tests are disabled (`-DBUILD_TESTS=OFF`); the test targets additionally
+require `boost-test`. The per-library ports above are what the sources actually include: vcpkg's `boost-headers`
+ships only the top-level headers, so `boost/scoped_array.hpp` comes from `boost-smart-ptr` and
+`boost/intrusive/list.hpp` from `boost-intrusive`. Qt may come from an official kit, which is what
+[`.github/workflows/windows.yml`](.github/workflows/windows.yml) installs, or from vcpkg (`qtbase qtsvg qttools`).
+The build runs `windeployqt` on the executable once it is linked, so the Qt DLLs and the plugins arrive next to it;
+copy the `*.qm` translation files from the build directory into a `translations` folder beside the .exe.
+
+**Windows – GitHub Releases (portable zip, [issue #175](https://github.com/ScanTailor-Advanced/scantailor-advanced/issues/175)):**
+Version tags matching `v*` run [`.github/workflows/windows.yml`](.github/workflows/windows.yml) in addition to the
+Linux workflow: it builds with MSVC against Qt 6 and attaches `scantailor-advanced-<version>-x64.zip` to the same
+release. The archive is self-contained (Qt and dependency DLLs, image format and platform plugins, translations,
+and the Visual C++ runtime), so it needs no installer – unpack and run. It follows the portability conventions
+described above, keeping settings in a `config` folder next to the .exe.

@@ -1,0 +1,140 @@
+# Windows: native MSVC build against Qt6; attaches a portable zip to releases (issue #175).
+# The .deb / AppImage are produced by release.yml, which this workflow does not touch.
+name: Windows
+
+on:
+  push:
+    branches: [master, main]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [master, main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  # Qt 6.8 LTS. aqtinstall 3.3.0, the latest release, cannot install Qt 6.11+ on
+  # Windows because the repository layout changed (miurahr/aqtinstall#1000); the
+  # fix is unreleased, so bumping this line is a one-liner once aqt ships it.
+  QT_VERSION: '6.8.3'
+  VCPKG_TRIPLET: x64-windows
+
+jobs:
+  build-windows:
+    name: Build (Windows MSVC, Qt6)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set version from tag
+        id: version
+        shell: pwsh
+        run: |
+          $file_version = (Select-String -Path version.h.in -Pattern '#define VERSION "([^"]+)"').Matches[0].Groups[1].Value
+          if ('${{ github.ref_type }}' -eq 'tag') {
+            $version = ('${{ github.ref_name }}' -replace '^v', '')
+            (Get-Content version.h.in -Raw) -replace '(#define VERSION ")[^"]*"', ('${1}' + $version + '"') |
+              Set-Content -NoNewline version.h.in
+          } else {
+            $version = $file_version
+          }
+          "value=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          # boost-headers alone does not build: it ships only the top-level headers, while
+          # the sources include library headers that are separate ports (boost/scoped_array.hpp
+          # is boost-smart-ptr, boost/intrusive/list.hpp is boost-intrusive, ...).
+          $ports = @(
+            'zlib', 'libpng', 'libjpeg-turbo', 'tiff',
+            'boost-array', 'boost-bind', 'boost-foreach', 'boost-function',
+            'boost-intrusive', 'boost-iterator', 'boost-lambda', 'boost-mpl',
+            'boost-multi-index', 'boost-smart-ptr'
+          )
+          vcpkg install --triplet ${{ env.VCPKG_TRIPLET }} @ports
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ env.QT_VERSION }}
+          arch: win64_msvc2022_64
+
+      - name: Configure CMake
+        shell: pwsh
+        run: |
+          # No -G: CMake picks the newest Visual Studio installed on the runner image.
+          cmake -S . -B build -A x64 `
+            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=${{ env.VCPKG_TRIPLET }} `
+            -DBUILD_TESTS=OFF
+
+      - name: Build
+        shell: pwsh
+        run: cmake --build build --config Release --parallel
+
+      - name: Assemble portable package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $candidates = @(Get-ChildItem -Path build -Recurse -Filter scantailor-advanced.exe)
+          if ($candidates.Count -eq 0) { throw 'scantailor-advanced.exe not found in the build tree.' }
+          $exe = $candidates | Where-Object { $_.FullName -match '\\Release\\' } | Select-Object -First 1
+          if (-not $exe) { $exe = $candidates | Sort-Object LastWriteTime -Descending | Select-Object -First 1 }
+
+          New-Item -ItemType Directory -Force -Path pkg, pkg\translations | Out-Null
+          # The build directory already is a runnable package: windeployqt runs as a
+          # post-build step of the app target, and copy_to_build_dir puts the
+          # dependency DLLs next to the executable. Take that directory as it is.
+          Copy-Item (Join-Path $exe.DirectoryName '*') pkg -Recurse -Force
+          # lrelease writes the compiled translations into the build root, while the
+          # application looks for them in translations/ beside the executable.
+          Get-ChildItem -Path build -Filter *.qm | Copy-Item -Destination pkg\translations -Force
+
+          # The exe is linked /MD, so it needs the MSVC runtime that ships with the
+          # toolset CMake picked: the newest redist folder of the newest VS.
+          $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" `
+            -latest -property installationPath
+          if (-not $vs) { throw 'vswhere found no Visual Studio installation.' }
+          $crt = Get-ChildItem -Path "$vs\VC\Redist\MSVC\*\x64\Microsoft.VC*.CRT" -Directory |
+            Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $crt) { throw "No x64 CRT redist folder under $vs." }
+          foreach ($dll in @('vcruntime140.dll', 'vcruntime140_1.dll', 'msvcp140.dll', 'msvcp140_1.dll')) {
+            Copy-Item (Join-Path $crt.FullName $dll) pkg -Force
+          }
+
+          # A portable zip is useless without the platform plugin and the Qt core DLL.
+          foreach ($required in @('Qt6Core.dll', 'platforms\qwindows.dll', 'msvcp140.dll')) {
+            if (-not (Test-Path "pkg\$required")) { throw "pkg is missing $required." }
+          }
+
+      - name: Create zip
+        shell: pwsh
+        run: Compress-Archive -Path pkg\* -DestinationPath "scantailor-advanced-${{ steps.version.outputs.value }}-x64.zip"
+
+      - name: Show package contents
+        shell: pwsh
+        run: Get-ChildItem -Path pkg -Recurse -File | Sort-Object Length -Descending |
+          Select-Object -First 20 @{n='MB';e={[math]::Round($_.Length/1MB, 1)}}, FullName | Format-Table -AutoSize
+
+      - name: Upload Windows package
+        uses: actions/upload-artifact@v5
+        with:
+          name: scantailor-windows-x64
+          path: scantailor-advanced-*-x64.zip
+          if-no-files-found: error
+
+      - name: Attach to the release
+        if: github.ref_type == 'tag'
+        shell: pwsh
+        run: |
+          $zip = Get-ChildItem -Filter 'scantailor-advanced-*-x64.zip' | Select-Object -First 1
+          # release.yml creates the release; wait for it rather than creating a competing one.
+          for ($attempt = 0; $attempt -lt 60; $attempt++) {
+            gh release view '${{ github.ref_name }}' --repo $env:GITHUB_REPOSITORY *> $null
+            if ($LASTEXITCODE -eq 0) { break }
+            Start-Sleep -Seconds 30
+          }
+          gh release upload '${{ github.ref_name }}' $zip.Name --clobber --repo $env:GITHUB_REPOSITORY

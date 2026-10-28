@@ -86,10 +86,10 @@ if (Qt6_FOUND AND WIN32)
   add_custom_command(
     TARGET ${target_name}
     POST_BUILD
-    COMMAND ${QT_BINDIR}/windeployqt  $<TARGET_FILE:${target_name}>
+    COMMAND ${WINDEPLOYQT_EXECUTABLE}  $<TARGET_FILE:${target_name}>
     COMMENT "deploy qt files alongside binary (e.g. plugins)"
   )
-  install(CODE "execute_process(COMMAND \"${QT_BINDIR}/windeployqt\" \"\$\{CMAKE_INSTALL_PREFIX\}\")")
+  install(CODE "execute_process(COMMAND \"${WINDEPLOYQT_EXECUTABLE}\" \"\$\{CMAKE_INSTALL_PREFIX\}\")")
 endif()
 
 translation_sources(${target_name} ${gui_only_sources} ${gui_only_ui_files})
