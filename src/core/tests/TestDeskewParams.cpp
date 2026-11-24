@@ -85,6 +85,21 @@ BOOST_AUTO_TEST_CASE(params_oblique_mode_attribute_roundtrip_xml) {
   BOOST_CHECK_CLOSE(restored.obliqueAngle(), 0.75, 1e-6);
 }
 
+/** A page saved before oblique correction existed must not get it switched on by loading. */
+BOOST_AUTO_TEST_CASE(params_without_oblique_attributes_keep_oblique_off) {
+  QDomDocument doc;
+  QDomElement el = doc.createElement("params");
+  el.setAttribute("mode", "auto");
+  el.setAttribute("angle", "0.1875");
+
+  const Params restored(el);
+  BOOST_CHECK(restored.mode() == MODE_AUTO);
+  BOOST_CHECK(restored.obliqueMode() == MODE_MANUAL);
+  BOOST_CHECK(!restored.autoOblique());
+  BOOST_CHECK_SMALL(restored.obliqueAngle(), 1e-12);
+  BOOST_CHECK_CLOSE(restored.deskewAngle(), 0.1875, 1e-6);
+}
+
 /** Selective Apply To… merge semantics (issue #117): deskew-only must not overwrite oblique. */
 BOOST_AUTO_TEST_CASE(apply_merge_deskew_only_preserves_oblique) {
   const Dependencies deps;
