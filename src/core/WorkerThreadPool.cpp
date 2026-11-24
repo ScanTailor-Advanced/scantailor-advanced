@@ -4,7 +4,9 @@
 #include "WorkerThreadPool.h"
 
 #include <QCoreApplication>
+#include <QDebug>
 #include <QThreadPool>
+#include <exception>
 #include <utility>
 
 #include "OutOfMemoryHandler.h"
@@ -57,8 +59,19 @@ void WorkerThreadPool::submitTask(const BackgroundTaskPtr& task) {
         }
       } catch (const std::bad_alloc&) {
         OutOfMemoryHandler::instance().handleOutOfMemorySituation();
+      } catch (const std::exception& e) {
+        qWarning() << "Background task failed:" << e.what();
+        reportFailure();
+      } catch (...) {
+        qWarning() << "Background task failed with an unknown exception.";
+        reportFailure();
       }
     }
+
+   private:
+    // An exception escaping a pool thread would terminate the application. Report the task
+    // with a null result instead, so that the receiver can still account for it.
+    void reportFailure() { QCoreApplication::postEvent(&m_owner, new TaskResultEvent(m_task, FilterResultPtr())); }
 
    private:
     WorkerThreadPool& m_owner;

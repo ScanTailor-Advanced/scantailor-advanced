@@ -10,7 +10,8 @@ set(sources
     TestPageSequence.cpp
     TestSelectContentApply.cpp
     TestSmartFilenameOrdering.cpp
-    TestUnits.cpp)
+    TestUnits.cpp
+    TestWorkerThreadPool.cpp)
 
 add_executable(core_tests ${sources})
 target_link_libraries(
