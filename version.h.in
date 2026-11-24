@@ -6,5 +6,8 @@
 #define VERSION "1.2.1"
 #define VERSION_QUAD ""  // Must be "x.x.x.x" or an empty string.
 #define PROJECT_VERSION 4
+// Oldest project file version that can still be read. Version 3 files (1.0.x and 1.1.x)
+// differ from version 4 only in attributes that have defaults.
+#define MIN_READABLE_PROJECT_VERSION 3
 
 #endif

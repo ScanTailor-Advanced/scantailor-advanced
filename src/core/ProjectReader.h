@@ -38,6 +38,9 @@ class ProjectReader {
 
   const QString& getVersion() const { return m_version; }
 
+  /** \return true if a project file with this version attribute can be read. */
+  static bool isVersionReadable(const QString& version);
+
   const std::shared_ptr<ProjectPages>& pages() const { return m_pages; }
 
   const SelectedPage& selectedPage() const { return m_selectedPage; }
