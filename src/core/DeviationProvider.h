@@ -8,8 +8,16 @@
 
 #include <cmath>
 #include <functional>
+#include <mutex>
 #include <unordered_map>
 
+/**
+ * \brief Tracks one value per key and tells which keys deviate from the rest.
+ *
+ * Thread-safe: worker threads update values while the GUI thread queries them.
+ * The compute callback is always invoked without the internal lock held, so it may
+ * take the owner's own locks.
+ */
 template <typename K, typename Hash = std::hash<K>>
 class DeviationProvider {
   DECLARE_NON_COPYABLE(DeviationProvider)
@@ -32,10 +40,14 @@ class DeviationProvider {
 
   void setComputeValueByKey(const std::function<double(const K&)>& computeValueByKey);
 
- protected:
+ private:
+  /** Recomputes the cached statistics if stale. Requires m_mutex. */
   void update() const;
 
- private:
+  /** Stores a value, marking the statistics stale only if it changed. Requires m_mutex. */
+  void store(const K& key, double value);
+
+  mutable std::mutex m_mutex;
   std::function<double(const K&)> m_computeValueByKey;
   std::unordered_map<K, double, Hash> m_keyValueMap;
 
@@ -52,14 +64,17 @@ DeviationProvider<K, Hash>::DeviationProvider(const std::function<double(const K
 
 template <typename K, typename Hash>
 bool DeviationProvider<K, Hash>::isDeviant(const K& key, double coefficient, double threshold, bool defaultVal) const {
-  if (m_keyValueMap.find(key) == m_keyValueMap.end()) {
+  const std::lock_guard<std::mutex> lock(m_mutex);
+
+  const auto it = m_keyValueMap.find(key);
+  if (it == m_keyValueMap.end()) {
     return false;
   }
   if (m_keyValueMap.size() < 3) {
     return false;
   }
 
-  double value = m_keyValueMap.at(key);
+  const double value = it->second;
   if (std::isnan(value)) {
     return defaultVal;
   }
@@ -71,44 +86,65 @@ bool DeviationProvider<K, Hash>::isDeviant(const K& key, double coefficient, dou
 
 template <typename K, typename Hash>
 double DeviationProvider<K, Hash>::getDeviationValue(const K& key) const {
-  if (m_keyValueMap.find(key) == m_keyValueMap.end()) {
+  const std::lock_guard<std::mutex> lock(m_mutex);
+
+  const auto it = m_keyValueMap.find(key);
+  if (it == m_keyValueMap.end()) {
     return -1.0;
   }
   if (m_keyValueMap.size() < 2) {
     return .0;
   }
 
-  double value = m_keyValueMap.at(key);
+  const double value = it->second;
   if (std::isnan(value)) {
     return -1.0;
   }
 
   update();
-  return std::abs(m_keyValueMap.at(key) - m_meanValue);
+  return std::abs(value - m_meanValue);
 }
 
 template <typename K, typename Hash>
 void DeviationProvider<K, Hash>::addOrUpdate(const K& key) {
-  m_needUpdate = true;
+  std::function<double(const K&)> computeValueByKey;
+  {
+    const std::lock_guard<std::mutex> lock(m_mutex);
+    computeValueByKey = m_computeValueByKey;
+  }
+  const double value = computeValueByKey(key);
 
-  m_keyValueMap[key] = m_computeValueByKey(key);
+  const std::lock_guard<std::mutex> lock(m_mutex);
+  store(key, value);
 }
 
 template <typename K, typename Hash>
 void DeviationProvider<K, Hash>::addOrUpdate(const K& key, const double value) {
-  m_needUpdate = true;
+  const std::lock_guard<std::mutex> lock(m_mutex);
+  store(key, value);
+}
 
-  m_keyValueMap[key] = value;
+template <typename K, typename Hash>
+void DeviationProvider<K, Hash>::store(const K& key, const double value) {
+  const auto it = m_keyValueMap.find(key);
+  if (it == m_keyValueMap.end()) {
+    m_keyValueMap.emplace(key, value);
+  } else if ((it->second == value) || (std::isnan(it->second) && std::isnan(value))) {
+    // Nothing changed: keep the cached statistics. Thumbnail generation re-submits
+    // the same value for every page, so this avoids a full recomputation per page.
+    return;
+  } else {
+    it->second = value;
+  }
+  m_needUpdate = true;
 }
 
 template <typename K, typename Hash>
 void DeviationProvider<K, Hash>::remove(const K& key) {
-  m_needUpdate = true;
-
-  if (m_keyValueMap.find(key) == m_keyValueMap.end()) {
-    return;
+  const std::lock_guard<std::mutex> lock(m_mutex);
+  if (m_keyValueMap.erase(key) != 0) {
+    m_needUpdate = true;
   }
-  m_keyValueMap.erase(key);
 }
 
 template <typename K, typename Hash>
@@ -147,11 +183,13 @@ void DeviationProvider<K, Hash>::update() const {
 
 template <typename K, typename Hash>
 void DeviationProvider<K, Hash>::setComputeValueByKey(const std::function<double(const K&)>& computeValueByKey) {
-  this->m_computeValueByKey = std::move(computeValueByKey);
+  const std::lock_guard<std::mutex> lock(m_mutex);
+  m_computeValueByKey = computeValueByKey;
 }
 
 template <typename K, typename Hash>
 void DeviationProvider<K, Hash>::clear() {
+  const std::lock_guard<std::mutex> lock(m_mutex);
   m_keyValueMap.clear();
 
   m_needUpdate = false;
