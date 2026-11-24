@@ -20,6 +20,12 @@ AutoManualMode obliqueModeFromXml(const QDomElement& deskewEl) {
   if (deskewEl.hasAttribute("autoOblique")) {
     return deskewEl.attribute("autoOblique", "1") != "0" ? MODE_AUTO : MODE_MANUAL;
   }
+  if (!deskewEl.hasAttribute("oblique")) {
+    // Saved before oblique correction existed. Such pages were processed without it,
+    // so switching it on here would shear them and invalidate every later stage the
+    // next time Deskew runs. Keep their geometry; the user can still enable it.
+    return MODE_MANUAL;
+  }
   return deskewEl.attribute("mode") == "manual" ? MODE_MANUAL : MODE_AUTO;
 }
 
