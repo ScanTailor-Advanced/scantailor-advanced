@@ -59,6 +59,34 @@ BOOST_AUTO_TEST_CASE(test_argb32_to_grayscale) {
   BOOST_CHECK(toGrayscale(argb32) == gray);
 }
 
+BOOST_AUTO_TEST_CASE(test_color_to_grayscale_matches_per_pixel_conversion) {
+  // Odd width so that scan lines carry padding.
+  const int w = 37;
+  const int h = 23;
+
+  QImage argb(w, h, QImage::Format_ARGB32);
+  for (int y = 0; y < h; ++y) {
+    for (int x = 0; x < w; ++x) {
+      argb.setPixel(x, y, qRgba(rand() & 0xff, rand() & 0xff, rand() & 0xff, 0x80 | (rand() & 0x7f)));
+    }
+  }
+
+  const QImage::Format formats[] = {QImage::Format_RGB32, QImage::Format_ARGB32, QImage::Format_RGB888,
+                                    QImage::Format_ARGB32_Premultiplied, QImage::Format_RGB16};
+  for (const QImage::Format format : formats) {
+    const QImage src(argb.convertToFormat(format));
+    const QImage gray(toGrayscale(src));
+
+    BOOST_REQUIRE(gray.format() == QImage::Format_Indexed8);
+    BOOST_REQUIRE(gray.size() == src.size());
+    for (int y = 0; y < h; ++y) {
+      for (int x = 0; x < w; ++x) {
+        BOOST_REQUIRE_EQUAL(int(gray.constScanLine(y)[x]), qGray(src.pixel(x, y)));
+      }
+    }
+  }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 }  // namespace tests
 }  // namespace imageproc

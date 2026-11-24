@@ -100,7 +100,7 @@ Task::UiUpdater::UiUpdater(std::shared_ptr<Filter> filter,
                            const bool batchProcessing)
     : m_filter(std::move(filter)),
       m_image(image),
-      m_downscaledImage(ImageView::createDownscaledImage(image)),
+      m_downscaledImage(batchProcessing ? QImage() : ImageView::createDownscaledImage(image)),
       m_imageId(imageId),
       m_xform(xform),
       m_batchProcessing(batchProcessing) {}

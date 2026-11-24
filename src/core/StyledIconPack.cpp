@@ -5,6 +5,7 @@
 
 #include <QIconEngine>
 #include <QPalette>
+#include <QPixmapCache>
 #include <QtCore/QFile>
 #include <QtGui/QPainter>
 #include <QtSvg/QSvgRenderer>
@@ -46,6 +47,8 @@ QIcon StyledIconPack::getIcon(const QString& iconKey) const {
 }
 
 namespace {
+QColor getIconColor(QIcon::Mode iconMode);
+
 class SvgStyledIconEngine : public QIconEngine {
  public:
   void paint(QPainter* painter, const QRect& rect, QIcon::Mode mode, QIcon::State state) override;
@@ -78,13 +81,28 @@ void SvgStyledIconEngine::paint(QPainter* painter, const QRect& rect, QIcon::Mod
 }
 
 QPixmap SvgStyledIconEngine::pixmap(const QSize& size, QIcon::Mode mode, QIcon::State state) {
+  // Rendering re-reads, re-colours and re-parses the SVG. The thumbnail list asks for
+  // the same two page icons once per page each time it is rebuilt, so cache the result.
+  // The colour is part of the key because it follows the palette.
+  const QString cacheKey = QString::fromLatin1("scantailor-svg-icon:%1:%2x%3:%4:%5")
+                               .arg(getIconFilePath(state))
+                               .arg(size.width())
+                               .arg(size.height())
+                               .arg(int(mode))
+                               .arg(getIconColor(mode).rgba(), 0, 16);
+  QPixmap pixmap;
+  if (QPixmapCache::find(cacheKey, &pixmap)) {
+    return pixmap;
+  }
+
   QImage img(size, QImage::Format_ARGB32_Premultiplied);
   img.fill(qRgba(0, 0, 0, 0));
-  QPixmap pixmap = QPixmap::fromImage(img, Qt::NoFormatConversion);
+  pixmap = QPixmap::fromImage(img, Qt::NoFormatConversion);
   {
     QPainter painter(&pixmap);
     paint(&painter, QRect(QPoint(0, 0), size), mode, state);
   }
+  QPixmapCache::insert(cacheKey, pixmap);
   return pixmap;
 }
 

@@ -104,11 +104,36 @@ static QImage anyToGrayscale(const QImage& src) {
   uint8_t* dstLine = dst.bits();
   const int dstBpl = dst.bytesPerLine();
 
-  for (int y = 0; y < height; ++y) {
-    for (int x = 0; x < width; ++x) {
-      dstLine[x] = static_cast<uint8_t>(qGray(src.pixel(x, y)));
-    }
-    dstLine += dstBpl;
+  // QImage::pixel() dispatches on the format for every pixel, which makes it by far
+  // the most expensive part of loading a colour page. Read the common formats directly.
+  switch (src.format()) {
+    case QImage::Format_RGB32:
+    case QImage::Format_ARGB32:
+      for (int y = 0; y < height; ++y) {
+        const QRgb* srcLine = reinterpret_cast<const QRgb*>(src.constScanLine(y));
+        for (int x = 0; x < width; ++x) {
+          dstLine[x] = static_cast<uint8_t>(qGray(srcLine[x]));
+        }
+        dstLine += dstBpl;
+      }
+      break;
+    case QImage::Format_RGB888:
+      for (int y = 0; y < height; ++y) {
+        const uint8_t* srcLine = src.constScanLine(y);
+        for (int x = 0; x < width; ++x, srcLine += 3) {
+          dstLine[x] = static_cast<uint8_t>(qGray(srcLine[0], srcLine[1], srcLine[2]));
+        }
+        dstLine += dstBpl;
+      }
+      break;
+    default:
+      for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+          dstLine[x] = static_cast<uint8_t>(qGray(src.pixel(x, y)));
+        }
+        dstLine += dstBpl;
+      }
+      break;
   }
 
   dst.setDotsPerMeterX(src.dotsPerMeterX());
