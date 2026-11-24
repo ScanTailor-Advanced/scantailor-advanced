@@ -1301,7 +1301,9 @@ void MainWindow::filterResult(const BackgroundTaskPtr& task, const FilterResultP
   }
 
   if (!isBatchProcessingInProgress()) {
-    if (!result->filter()) {
+    if (!result) {
+      // The task failed with an exception, already logged by WorkerThreadPool.
+    } else if (!result->filter()) {
       // Error loading file.  No special action is necessary.
     } else if (result->filter() != m_stages->filterAt(m_curFilter)) {
       // Error from one of the previous filters.
@@ -1316,7 +1318,11 @@ void MainWindow::filterResult(const BackgroundTaskPtr& task, const FilterResultP
 
   // This needs to be done even if batch processing is taking place,
   // for instance because thumbnail invalidation is done from here.
-  result->updateUI(this);
+  // A null result means the task failed. The page stays unprocessed, but in batch mode
+  // it is still accounted for below, so that the batch moves on and finishes.
+  if (result) {
+    result->updateUI(this);
+  }
 
   if (isBatchProcessingInProgress()) {
     if (m_batchQueue->allProcessed()) {
