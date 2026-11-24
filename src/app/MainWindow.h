@@ -249,6 +249,8 @@ class MainWindow : public QMainWindow, private FilterUiInterface, private Ui::Ma
 
   bool isBatchProcessingInProgress() const;
 
+  void feedWorkerPool();
+
   bool isProjectLoaded() const;
 
   bool isBelowSelectContent() const;
