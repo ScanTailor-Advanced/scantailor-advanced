@@ -167,9 +167,11 @@ FilterResultPtr Task::process(const TaskStatus& status, const FilterData& data) 
   if (m_nextTask) {
     return m_nextTask->process(status, FilterData(data, data.xform()), uiData.pageRect(), uiData.contentRect());
   } else {
+    // Batch results are never displayed, so the mask would be discarded unused.
+    const ContentMask contentMask(m_batchProcessing ? ContentMask()
+                                                    : ContentMask(data.grayImageBlackOnWhite(), data.xform(), status));
     return std::make_shared<UiUpdater>(m_filter, m_pageId, std::move(m_dbg), data.origImage(), data.xform(),
-                                       ContentMask(data.grayImageBlackOnWhite(), data.xform(), status), uiData,
-                                       m_batchProcessing);
+                                       contentMask, uiData, m_batchProcessing);
   }
 }  // Task::process
 
@@ -187,7 +189,7 @@ Task::UiUpdater::UiUpdater(std::shared_ptr<Filter> filter,
       m_pageId(pageId),
       m_dbg(std::move(dbg)),
       m_image(image),
-      m_downscaledImage(ImageView::createDownscaledImage(image)),
+      m_downscaledImage(batch ? QImage() : ImageView::createDownscaledImage(image)),
       m_contentMask(contentMask),
       m_xform(xform),
       m_uiData(uiData),

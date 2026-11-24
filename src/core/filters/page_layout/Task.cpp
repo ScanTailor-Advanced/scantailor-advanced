@@ -92,8 +92,10 @@ FilterResultPtr Task::process(const TaskStatus& status,
     newXform.setPostCropArea(Utils::shiftToRoundedOrigin(newXform.transform().map(pageRectPhys)));
     return m_nextTask->process(status, FilterData(data, newXform), contentRectPhys);
   } else {
-    return std::make_shared<UiUpdater>(m_filter, m_settings, m_pageId, data.origImage(), data.xform(),
-                                       ContentMask(data.grayImageBlackOnWhite(), data.xform(), status),
+    // Batch results are never displayed, so the mask would be discarded unused.
+    const ContentMask contentMask(m_batchProcessing ? ContentMask()
+                                                    : ContentMask(data.grayImageBlackOnWhite(), data.xform(), status));
+    return std::make_shared<UiUpdater>(m_filter, m_settings, m_pageId, data.origImage(), data.xform(), contentMask,
                                        adaptedContentRect, aggHardSizeBefore != aggHardSizeAfter, m_batchProcessing);
   }
 }
@@ -113,7 +115,7 @@ Task::UiUpdater::UiUpdater(std::shared_ptr<Filter> filter,
       m_settings(std::move(settings)),
       m_pageId(pageId),
       m_image(image),
-      m_downscaledImage(ImageView::createDownscaledImage(image)),
+      m_downscaledImage(batch ? QImage() : ImageView::createDownscaledImage(image)),
       m_contentMask(contentMask),
       m_xform(xform),
       m_adaptedContentRect(adaptedContentRect),
