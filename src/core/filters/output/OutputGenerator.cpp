@@ -568,7 +568,11 @@ QPolygonF clipContentPolyToRect(const QPolygonF& contentPoly, const QRect& image
   const QRectF r(imageRect);
   QPolygonF rectPoly;
   rectPoly << r.topLeft() << r.topRight() << r.bottomRight() << r.bottomLeft();
-  return contentPoly.intersected(rectPoly);
+  // Round first, as PolygonRasterizer does.  A polygon mapped back to original image
+  // coordinates may have edges a tiny fraction of a pixel off the image border, and
+  // QPainterPath boolean operations degenerate on such nearly coincident edges,
+  // returning a zero-area sliver that makes the whole page be treated as margin.
+  return PolygonUtils::round(contentPoly).intersected(rectPoly);
 }
 }  // namespace
 
