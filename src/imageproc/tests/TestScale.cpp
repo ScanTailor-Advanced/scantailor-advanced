@@ -7,6 +7,7 @@
 #include <QImage>
 #include <QSize>
 #include <boost/test/unit_test.hpp>
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
@@ -46,9 +47,35 @@ static bool fuzzyCompare(const QImage& img1, const QImage& img2) {
   return true;
 }
 
+// The exact mean of the source area under each destination pixel; it does not change with the Qt version.
+static GrayImage areaAverage(const GrayImage& src, const QSize& dstSize) {
+  const double xscale = double(src.width()) / dstSize.width();
+  const double yscale = double(src.height()) / dstSize.height();
+  GrayImage dst(dstSize);
+  for (int dy = 0; dy < dstSize.height(); ++dy) {
+    const double y0 = dy * yscale;
+    const double y1 = y0 + yscale;
+    for (int dx = 0; dx < dstSize.width(); ++dx) {
+      const double x0 = dx * xscale;
+      const double x1 = x0 + xscale;
+      double sum = 0.0;
+      for (int sy = int(std::floor(y0)); sy < std::min(src.height(), int(std::ceil(y1))); ++sy) {
+        const double wy = std::min(y1, sy + 1.0) - std::max(y0, double(sy));
+        const uint8_t* srcLine = src.data() + sy * src.stride();
+        for (int sx = int(std::floor(x0)); sx < std::min(src.width(), int(std::ceil(x1))); ++sx) {
+          const double wx = std::min(x1, sx + 1.0) - std::max(x0, double(sx));
+          sum += wx * wy * srcLine[sx];
+        }
+      }
+      dst.data()[dy * dst.stride() + dx] = static_cast<uint8_t>(std::lround(sum / (xscale * yscale)));
+    }
+  }
+  return dst;
+}
+
 static bool checkScale(const GrayImage& img, const QSize& newSize) {
   const GrayImage scaled1(scaleToGray(img, newSize));
-  const GrayImage scaled2(img.toQImage().scaled(newSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+  const GrayImage scaled2(areaAverage(img, newSize));
   return fuzzyCompare(scaled1, scaled2);
 }
 
@@ -62,15 +89,10 @@ BOOST_AUTO_TEST_CASE(test_random_image) {
     line += img.stride();
   }
 
-  // Unfortunately scaleToGray() and QImage::scaled()
-  // produce too different results when upscaling.
-
+  // A larger image gets values interpolated between pixels, so the area mean is a reference only for smaller images.
   BOOST_CHECK(checkScale(img, QSize(50, 50)));
-  // BOOST_CHECK(checkScale(img, QSize(200, 200)));
   BOOST_CHECK(checkScale(img, QSize(80, 80)));
-  // BOOST_CHECK(checkScale(img, QSize(140, 140)));
-  // BOOST_CHECK(checkScale(img, QSize(55, 145)));
-  // BOOST_CHECK(checkScale(img, QSize(145, 55)));
+  BOOST_CHECK(checkScale(img, QSize(7, 13)));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
