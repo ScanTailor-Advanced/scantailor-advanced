@@ -465,6 +465,8 @@ make -j$(nproc)
 
 For **offline or minimal chroot** builds where unit tests cannot be built (issue #61), use `cmake -DBUILD_TESTS=OFF ..` to skip the test targets.
 
+For a build that runs only on your own machine, `cmake -DENABLE_NATIVE_ARCH=ON ..` optimizes it for your CPU (`-march=native`, GCC and Clang). Do not use it for packages or for binaries that other computers use. On a CPU without the same instructions, they stop with "Illegal instruction" (issue #191).
+
 The executable will be in the `build` directory. To install system-wide: `sudo make install`.
 
 To build a `.deb` package (with application icon and menu entry):

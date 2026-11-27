@@ -44,7 +44,6 @@ if (NOT DEFAULT_COMPILER_FLAGS_IS_SET)
   if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic -Werror=return-type -Wno-unused")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Werror=return-type -Wno-unused")
-    add_compile_options("$<$<CONFIG:RELEASE>:-march=native;-mtune=native>")
   endif()
 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}"
@@ -55,6 +54,17 @@ if (NOT DEFAULT_COMPILER_FLAGS_IS_SET)
       CACHE STRING "Common link flags for all build configurations." FORCE)
 
   set(DEFAULT_COMPILER_FLAGS_IS_SET YES CACHE INTERNAL "" FORCE)
+endif()
+
+# Binaries built with -march=native can stop with "Illegal instruction" on other CPUs (issue #191), so it is off by default.
+option(ENABLE_NATIVE_ARCH "Optimize release builds for the CPU of the build machine (-march=native -mtune=native)" OFF)
+# add_compile_options() is not cached, so it must stay outside the block above, which runs only on the first configure.
+if (ENABLE_NATIVE_ARCH)
+  if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    add_compile_options("$<$<CONFIG:RELEASE>:-march=native;-mtune=native>")
+  else()
+    message(WARNING "ENABLE_NATIVE_ARCH has an effect only with GCC and Clang.")
+  endif()
 endif()
 
 if (UNIX)
