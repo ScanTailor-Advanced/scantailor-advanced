@@ -6,8 +6,8 @@
 
 #include <QImage>
 #include <QSize>
-#include <boost/test/unit_test.hpp>
 #include <algorithm>
+#include <boost/test/unit_test.hpp>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
